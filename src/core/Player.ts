@@ -8,6 +8,8 @@ export class Player {
     y: Constants.GAME_HEIGHT - 40,
   }
   private static SPEED = 5
+  private static JUMP_VELOCITY = 9
+  private static DASH_DISTANCE = 150
 
   private game: Game
   public sprite: Phaser.Physics.Matter.Sprite
@@ -23,6 +25,8 @@ export class Player {
     new InputController(this.game, {
       sprite: this.sprite,
       speed: Player.SPEED,
+      jumpVelocity: Player.JUMP_VELOCITY,
+      dashDistance: Player.DASH_DISTANCE,
     })
   }
 }
