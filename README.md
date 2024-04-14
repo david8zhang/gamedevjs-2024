@@ -2,6 +2,12 @@
 
 GamedevJS 2024 Project
 
+## Controls
+
+- ALT to jump
+- Z to dash
+- Arrow Keys to move
+
 ## Local Development
 
 1. `npm install`

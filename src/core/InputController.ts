@@ -1,4 +1,5 @@
 import Game from '../scenes/Game'
+import { UI } from '../scenes/UI'
 import { Constants } from '../utils/Constants'
 import { Player } from './Player'
 
@@ -13,12 +14,15 @@ export class InputController {
   private game: Game
   private keyRight!: Phaser.Input.Keyboard.Key
   private keyLeft!: Phaser.Input.Keyboard.Key
-  // private sprite!: Phaser.Physics.Matter.Sprite
   private player: Player
   private speed: number
   private jumpVelocity: number
+
+  // Dashing
   private dashDistance: number
   private isDashing: boolean = false
+  private dashOnCooldown: boolean = false
+  private jumpOnCooldown: boolean = false
 
   constructor(game: Game, config: InputControllerConfig) {
     this.game = game
@@ -38,7 +42,8 @@ export class InputController {
       (e: Phaser.Input.Keyboard.Key) => {
         switch (e.keyCode) {
           case Phaser.Input.Keyboard.KeyCodes.ALT: {
-            this.player.sprite.setVelocityY(-this.jumpVelocity)
+            // this.player.sprite.setVelocityY(-this.jumpVelocity)
+            this.jump()
             break
           }
           case Phaser.Input.Keyboard.KeyCodes.Z: {
@@ -80,29 +85,69 @@ export class InputController {
     return Math.min(Constants.GAME_WIDTH, Math.max(0, endX))
   }
 
-  dash() {
-    const sprite = this.player.sprite
-    const endX = this.getDashEndX()
-    const dashSpeed = 0.75
-    const duration = Math.abs(sprite.x - endX) / dashSpeed
+  jump() {
+    if (!this.jumpOnCooldown) {
+      this.jumpOnCooldown = true
+      this.player.sprite.setVelocityY(-this.jumpVelocity)
+      const cooldownEvent = this.game.time.addEvent({
+        delay: 125,
+        repeat: 16,
+        callback: () => {
+          UI.instance.jumpIcon.updateCooldownOverlay(
+            1 - cooldownEvent.getOverallProgress()
+          )
+          if (cooldownEvent.getOverallProgress() == 1) {
+            this.jumpOnCooldown = false
+          }
+        },
+      })
+      UI.instance.jumpIcon.updateCooldownOverlay(
+        1 - cooldownEvent.getOverallProgress()
+      )
+    }
+  }
 
-    this.game.tweens.add({
-      targets: [sprite],
-      onStart: () => {
-        sprite.setTint(0x0000ff)
-        this.isDashing = true
-      },
-      onComplete: () => {
-        sprite.clearTint()
-        this.isDashing = false
-      },
-      x: {
-        from: sprite.x,
-        to: endX,
-      },
-      ease: Phaser.Math.Easing.Sine.InOut,
-      duration: duration,
-    })
+  dash() {
+    if (!this.dashOnCooldown) {
+      const sprite = this.player.sprite
+      const endX = this.getDashEndX()
+      const dashSpeed = 0.75
+      const duration = Math.abs(sprite.x - endX) / dashSpeed
+      this.dashOnCooldown = true
+      this.game.tweens.add({
+        targets: [sprite],
+        onStart: () => {
+          sprite.setTint(0x0000ff)
+          this.isDashing = true
+        },
+        onComplete: () => {
+          sprite.clearTint()
+          this.isDashing = false
+        },
+        x: {
+          from: sprite.x,
+          to: endX,
+        },
+        ease: Phaser.Math.Easing.Sine.InOut,
+        duration: duration,
+      })
+
+      const cooldownEvent = this.game.time.addEvent({
+        delay: 125,
+        repeat: 32,
+        callback: () => {
+          UI.instance.dashIcon.updateCooldownOverlay(
+            1 - cooldownEvent.getOverallProgress()
+          )
+          if (cooldownEvent.getOverallProgress() == 1) {
+            this.dashOnCooldown = false
+          }
+        },
+      })
+      UI.instance.dashIcon.updateCooldownOverlay(
+        1 - cooldownEvent.getOverallProgress()
+      )
+    }
   }
 
   update() {
