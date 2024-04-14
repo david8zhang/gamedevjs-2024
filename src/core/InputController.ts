@@ -22,7 +22,7 @@ export class InputController {
   private dashDistance: number
   private isDashing: boolean = false
   private dashOnCooldown: boolean = false
-  private jumpOnCooldown: boolean = false
+  private doubleJumpOnCooldown: boolean = false
 
   constructor(game: Game, config: InputControllerConfig) {
     this.game = game
@@ -59,6 +59,11 @@ export class InputController {
     this.game.events.on('update', this.update, this)
   }
 
+  isGrounded() {
+    const velocity = this.player.sprite.getVelocity()
+    return Math.abs(velocity.y!) <= 0.0001
+  }
+
   // Take into account world bounds and platforms
   getDashEndX() {
     const sprite = this.player.sprite
@@ -86,24 +91,28 @@ export class InputController {
   }
 
   jump() {
-    if (!this.jumpOnCooldown) {
-      this.jumpOnCooldown = true
+    if (this.isGrounded()) {
       this.player.sprite.setVelocityY(-this.jumpVelocity)
-      const cooldownEvent = this.game.time.addEvent({
-        delay: 125,
-        repeat: 16,
-        callback: () => {
-          UI.instance.jumpIcon.updateCooldownOverlay(
-            1 - cooldownEvent.getOverallProgress()
-          )
-          if (cooldownEvent.getOverallProgress() == 1) {
-            this.jumpOnCooldown = false
-          }
-        },
-      })
-      UI.instance.jumpIcon.updateCooldownOverlay(
-        1 - cooldownEvent.getOverallProgress()
-      )
+    } else {
+      if (!this.doubleJumpOnCooldown) {
+        this.doubleJumpOnCooldown = true
+        this.player.sprite.setVelocityY(-this.jumpVelocity)
+        const cooldownEvent = this.game.time.addEvent({
+          delay: 125,
+          repeat: 16,
+          callback: () => {
+            UI.instance.jumpIcon.updateCooldownOverlay(
+              1 - cooldownEvent.getOverallProgress()
+            )
+            if (cooldownEvent.getOverallProgress() == 1) {
+              this.doubleJumpOnCooldown = false
+            }
+          },
+        })
+        UI.instance.jumpIcon.updateCooldownOverlay(
+          1 - cooldownEvent.getOverallProgress()
+        )
+      }
     }
   }
 
