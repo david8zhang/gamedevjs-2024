@@ -8,22 +8,27 @@ export class Player {
     y: Constants.GAME_HEIGHT - 40,
   }
   private static SPEED = 5
-  private static JUMP_VELOCITY = 9
+  private static JUMP_VELOCITY = 12
   private static DASH_DISTANCE = 150
 
   private game: Game
   public sprite: Phaser.Physics.Matter.Sprite
+  public inputController!: InputController
 
   constructor(game: Game) {
     this.game = game
-    this.sprite = this.game.matter.add
-      .sprite(Player.SPAWN_POSITION.x, Player.SPAWN_POSITION.y, 'player')
+
+    this.sprite = this.game.matter.add.sprite(0, 0, 'player')
+
+    // Setup body & sensors
+    this.sprite
+      .setScale(2)
       .setFixedRotation()
-      .setFrictionAir(0.02)
-      .setFrictionStatic(0)
-      .setFriction(0.1)
-    new InputController(this.game, {
-      sprite: this.sprite,
+      .setBounce(0)
+      .setPosition(Player.SPAWN_POSITION.x, Player.SPAWN_POSITION.y)
+
+    this.inputController = new InputController(this.game, {
+      player: this,
       speed: Player.SPEED,
       jumpVelocity: Player.JUMP_VELOCITY,
       dashDistance: Player.DASH_DISTANCE,

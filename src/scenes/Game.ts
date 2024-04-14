@@ -6,7 +6,6 @@ import { Constants } from '../utils/Constants'
 export default class Game extends Phaser.Scene {
   public player!: Player
   public map!: Map
-  public onUpdateFunctions: (() => void)[] = []
 
   constructor() {
     super('game')
@@ -33,11 +32,5 @@ export default class Game extends Phaser.Scene {
       Constants.GAME_WIDTH,
       Constants.GAME_HEIGHT
     )
-  }
-
-  update() {
-    this.onUpdateFunctions.forEach((fn) => {
-      fn()
-    })
   }
 }

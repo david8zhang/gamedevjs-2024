@@ -1,8 +1,9 @@
 import Game from '../scenes/Game'
 import { Constants } from '../utils/Constants'
+import { Player } from './Player'
 
 export interface InputControllerConfig {
-  sprite: Phaser.Physics.Matter.Sprite
+  player: Player
   speed: number
   jumpVelocity: number
   dashDistance: number
@@ -12,11 +13,11 @@ export class InputController {
   private game: Game
   private keyRight!: Phaser.Input.Keyboard.Key
   private keyLeft!: Phaser.Input.Keyboard.Key
-  private sprite!: Phaser.Physics.Matter.Sprite
+  // private sprite!: Phaser.Physics.Matter.Sprite
+  private player: Player
   private speed: number
   private jumpVelocity: number
   private dashDistance: number
-
   private isDashing: boolean = false
 
   constructor(game: Game, config: InputControllerConfig) {
@@ -27,7 +28,7 @@ export class InputController {
     this.keyLeft = this.game.input.keyboard!.addKey(
       Phaser.Input.Keyboard.KeyCodes.LEFT
     )
-    this.sprite = config.sprite
+    this.player = config.player
     this.speed = config.speed
     this.jumpVelocity = config.jumpVelocity
     this.dashDistance = config.dashDistance
@@ -37,11 +38,11 @@ export class InputController {
       (e: Phaser.Input.Keyboard.Key) => {
         switch (e.keyCode) {
           case Phaser.Input.Keyboard.KeyCodes.ALT: {
-            this.sprite.setVelocityY(-this.jumpVelocity)
+            this.player.sprite.setVelocityY(-this.jumpVelocity)
             break
           }
           case Phaser.Input.Keyboard.KeyCodes.Z: {
-            this.groundDash()
+            this.dash()
             break
           }
           default:
@@ -55,29 +56,22 @@ export class InputController {
 
   // Take into account world bounds and platforms
   getDashEndX() {
-    const dashDistance = this.sprite.flipX
-      ? this.dashDistance
-      : -this.dashDistance
-    const endX = this.sprite.x + dashDistance
+    const sprite = this.player.sprite
+    const dashDistance = sprite.flipX ? this.dashDistance : -this.dashDistance
+    const endX = sprite.x + dashDistance
     const platformLayer = this.game.map.getLayer('Platforms')!
 
     // There's probably a more efficient way to check platform edges but I'm lazy and it works
-    if (this.sprite.flipX) {
-      for (let x = this.sprite.x; x < endX; x++) {
-        const tile = platformLayer.tilemapLayer.getTileAtWorldXY(
-          x,
-          this.sprite.y
-        )
+    if (sprite.flipX) {
+      for (let x = sprite.x; x < endX; x++) {
+        const tile = platformLayer.tilemapLayer.getTileAtWorldXY(x, sprite.y)
         if (tile) {
           return tile.getLeft()
         }
       }
     } else {
-      for (let x = this.sprite.x; x > endX; x--) {
-        const tile = platformLayer.tilemapLayer.getTileAtWorldXY(
-          x,
-          this.sprite.y
-        )
+      for (let x = sprite.x; x > endX; x--) {
+        const tile = platformLayer.tilemapLayer.getTileAtWorldXY(x, sprite.y)
         if (tile) {
           return tile.getRight()
         }
@@ -86,21 +80,24 @@ export class InputController {
     return Math.min(Constants.GAME_WIDTH, Math.max(0, endX))
   }
 
-  groundDash() {
+  dash() {
+    const sprite = this.player.sprite
     const endX = this.getDashEndX()
-    const dashSpeed = 1
-    const duration = Math.abs(this.sprite.x - endX) / dashSpeed
+    const dashSpeed = 0.75
+    const duration = Math.abs(sprite.x - endX) / dashSpeed
 
     this.game.tweens.add({
-      targets: [this.sprite],
+      targets: [sprite],
       onStart: () => {
+        sprite.setTint(0x0000ff)
         this.isDashing = true
       },
       onComplete: () => {
+        sprite.clearTint()
         this.isDashing = false
       },
       x: {
-        from: this.sprite.x,
+        from: sprite.x,
         to: endX,
       },
       ease: Phaser.Math.Easing.Sine.InOut,
@@ -110,12 +107,13 @@ export class InputController {
 
   update() {
     if (!this.isDashing) {
+      const sprite = this.player.sprite
       if (this.keyLeft.isDown) {
-        this.sprite.setFlipX(false)
-        this.sprite.setVelocityX(-this.speed)
+        sprite.setFlipX(false)
+        sprite.setVelocityX(-this.speed)
       } else if (this.keyRight.isDown) {
-        this.sprite.setFlipX(true)
-        this.sprite.setVelocityX(this.speed)
+        sprite.setFlipX(true)
+        sprite.setVelocityX(this.speed)
       }
     }
   }

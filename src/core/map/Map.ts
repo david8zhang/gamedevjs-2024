@@ -211,7 +211,6 @@ export class Map {
 
   createLayer(layerName: string, tileset: Phaser.Tilemaps.Tileset) {
     const layer = this.tilemap.createLayer(layerName, tileset)!
-    console.log(layer, layerName, tileset)
     layer.setOrigin(0)
     layer.setCollisionByExclusion([-1])
     return layer
