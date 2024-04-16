@@ -17,6 +17,9 @@ export default class Preload extends Phaser.Scene {
     // Skill icons
     this.load.image('dash', 'icons/dash.png')
     this.load.image('jump', 'icons/jump.png')
+
+    // Monsters
+    this.load.image('monster', 'characters/monsters/sample-monster.png')
   }
 
   create() {

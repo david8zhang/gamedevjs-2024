@@ -1,10 +1,10 @@
 import Game from '../scenes/Game'
-import { Constants } from '../utils/Constants'
+import { CollisionCategory, Constants } from '../utils/Constants'
 import { InputController } from './InputController'
 
 export class Player {
   private static SPAWN_POSITION = {
-    x: 10,
+    x: 50,
     y: Constants.GAME_HEIGHT - 40,
   }
   private static SPEED = 5
@@ -26,6 +26,8 @@ export class Player {
       .setFixedRotation()
       .setBounce(0)
       .setPosition(Player.SPAWN_POSITION.x, Player.SPAWN_POSITION.y)
+      .setCollisionCategory(CollisionCategory.PLAYER)
+      .setCollidesWith([CollisionCategory.FLOOR, CollisionCategory.BOUNDS])
 
     this.inputController = new InputController(this.game, {
       player: this,

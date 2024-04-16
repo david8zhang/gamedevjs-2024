@@ -1,4 +1,5 @@
-import { Constants } from '../../utils/Constants'
+import { Bodies } from 'matter'
+import { CollisionCategory, Constants } from '../../utils/Constants'
 import { Grid } from './Grid'
 import { Pathfinding } from './Pathfinding'
 
@@ -11,7 +12,7 @@ export interface MapConfig {
 
 export class Map {
   private scene: Phaser.Scene
-  private tilemap!: Phaser.Tilemaps.Tilemap
+  public tilemap!: Phaser.Tilemaps.Tilemap
   private grid!: Grid
   private pathfinding: Pathfinding
   public enemyLayer!: Phaser.Tilemaps.TilemapLayer
@@ -186,23 +187,60 @@ export class Map {
       'tilemap_packed',
       18,
       18
-      // 1,
-      // 2
     )!
     const tilesetBG = this.tilemap.addTilesetImage(
       'tilemap-backgrounds_packed',
       'tilemap-backgrounds_packed',
       18,
       18
-      // 1,
-      // 2
     )!
     this.createLayer('Background', tilesetBG)
     const platformLayer = this.createLayer('Platforms', tilesetPlatform)
-    platformLayer.setCollisionByProperty({ collides: true })
-    this.scene.matter.world.convertTilemapLayer(platformLayer, {
-      label: 'PLATFORM_TILES',
-    })
+
+    platformLayer.forEachTile(
+      (tile) => {
+        this.scene.matter.add
+          .sprite(
+            tile.pixelX + tile.width / 2,
+            tile.pixelY + tile.height / 2,
+            ''
+          )
+          .setVisible(false)
+          .setDisplaySize(tile.width, tile.height)
+          .setStatic(true)
+          .setOrigin(0, 0)
+          .setCollisionCategory(CollisionCategory.FLOOR)
+      },
+      this,
+      0,
+      0,
+      Constants.GAME_WIDTH,
+      Constants.GAME_HEIGHT,
+      { isNotEmpty: true }
+    )
+
+    const wallsLayer = this.createLayer('Walls', tilesetPlatform)
+    wallsLayer.forEachTile(
+      (tile) => {
+        this.scene.matter.add
+          .sprite(
+            tile.pixelX + tile.width / 2,
+            tile.pixelY + tile.height / 2,
+            ''
+          )
+          .setVisible(false)
+          .setDisplaySize(tile.width, tile.height)
+          .setStatic(true)
+          .setOrigin(0, 0)
+          .setCollisionCategory(CollisionCategory.WALLS)
+      },
+      this,
+      0,
+      0,
+      Constants.GAME_WIDTH,
+      Constants.GAME_HEIGHT,
+      { isNotEmpty: true }
+    )
   }
 
   getLayer(layerName: string) {
