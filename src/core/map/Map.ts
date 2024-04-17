@@ -1,5 +1,8 @@
-import { Bodies } from 'matter'
-import { CollisionCategory, Constants } from '../../utils/Constants'
+import {
+  CollisionCategory,
+  CollisionLabel,
+  Constants,
+} from '../../utils/Constants'
 import { Grid } from './Grid'
 import { Pathfinding } from './Pathfinding'
 
@@ -196,7 +199,6 @@ export class Map {
     )!
     this.createLayer('Background', tilesetBG)
     const platformLayer = this.createLayer('Platforms', tilesetPlatform)
-
     platformLayer.forEachTile(
       (tile) => {
         this.scene.matter.add
@@ -226,7 +228,11 @@ export class Map {
           .sprite(
             tile.pixelX + tile.width / 2,
             tile.pixelY + tile.height / 2,
-            ''
+            '',
+            undefined,
+            {
+              label: CollisionLabel.WALLS,
+            }
           )
           .setVisible(false)
           .setDisplaySize(tile.width, tile.height)

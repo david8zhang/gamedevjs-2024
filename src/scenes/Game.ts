@@ -1,8 +1,11 @@
 import Phaser from 'phaser'
 import { Player } from '../core/Player'
 import { Map } from '../core/map/Map'
-import { CollisionCategory, Constants } from '../utils/Constants'
-import { Monster } from '../core/Monster'
+import {
+  CollisionCategory,
+  CollisionLabel,
+  Constants,
+} from '../utils/Constants'
 import { MonsterSpawner } from '../core/MonsterSpawner'
 
 export default class Game extends Phaser.Scene {
@@ -30,21 +33,27 @@ export default class Game extends Phaser.Scene {
     )
 
     this.matter.add
-      .sprite(0, Constants.GAME_HEIGHT / 2, '')
+      .sprite(0, Constants.GAME_HEIGHT / 2, '', undefined, {
+        label: CollisionLabel.BOUNDS,
+      })
       .setDisplaySize(1, Constants.GAME_HEIGHT)
       .setVisible(false)
       .setStatic(true)
       .setCollisionCategory(CollisionCategory.BOUNDS)
 
     this.matter.add
-      .sprite(Constants.GAME_WIDTH, Constants.GAME_HEIGHT / 2, '')
+      .sprite(Constants.GAME_WIDTH, Constants.GAME_HEIGHT / 2, '', undefined, {
+        label: CollisionLabel.BOUNDS,
+      })
       .setDisplaySize(1, Constants.GAME_HEIGHT)
       .setVisible(false)
       .setStatic(true)
       .setCollisionCategory(CollisionCategory.BOUNDS)
 
     this.matter.add
-      .sprite(Constants.GAME_WIDTH / 2, 0, '')
+      .sprite(Constants.GAME_WIDTH / 2, 0, '', undefined, {
+        label: CollisionLabel.BOUNDS,
+      })
       .setDisplaySize(Constants.GAME_WIDTH, 1)
       .setVisible(false)
       .setStatic(true)
@@ -57,16 +66,14 @@ export default class Game extends Phaser.Scene {
     const spawnerLayer = this.map.tilemap.getObjectLayer('Spawner')
     if (spawnerLayer) {
       const spawnerObjects = spawnerLayer.objects
-      spawnerObjects.forEach((obj, index) => {
-        if (index == 0) {
-          const spawner = new MonsterSpawner(this, {
-            position: {
-              x: obj.x!,
-              y: obj.y!,
-            },
-          })
-          this.spawners.push(spawner)
-        }
+      spawnerObjects.forEach((obj) => {
+        const spawner = new MonsterSpawner(this, {
+          position: {
+            x: obj.x!,
+            y: obj.y!,
+          },
+        })
+        this.spawners.push(spawner)
       })
     }
   }

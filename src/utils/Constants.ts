@@ -6,6 +6,14 @@ export enum CollisionCategory {
   BOUNDS = 0b00010000,
 }
 
+export enum CollisionLabel {
+  PLAYER = 'PLAYER',
+  ENEMY = 'ENEMY',
+  WALLS = 'WALLS',
+  FLOOR = 'FLOOR',
+  BOUNDS = 'BOUNDS',
+}
+
 export class Constants {
   public static WINDOW_WIDTH = 800
   public static WINDOW_HEIGHT = 600

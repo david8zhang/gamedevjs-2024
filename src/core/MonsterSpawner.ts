@@ -9,7 +9,7 @@ export interface MonsterSpawnerConfig {
 }
 
 export class MonsterSpawner {
-  private static MAX_MONSTERS = 2
+  private static MAX_MONSTERS = 3
   private game: Game
   private monsters: Monster[] = []
 
