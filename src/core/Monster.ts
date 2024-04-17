@@ -22,37 +22,7 @@ export class Monster {
 
   constructor(game: Game, config: MonsterConfig) {
     this.game = game
-
     this.sprite = this.game.matter.add.sprite(0, 0, 'monster')
-
-    const { Bodies, Body } = (Phaser.Physics.Matter as any)
-      .Matter as typeof MatterJS
-    const mainBody = Bodies.rectangle(
-      0,
-      0,
-      this.sprite.displayWidth,
-      this.sprite.displayHeight
-    )
-    const frontSensor = Bodies.rectangle(
-      this.sprite.displayWidth / 2 + 10,
-      0,
-      20,
-      20,
-      {
-        isSensor: true,
-        label: 'FRONT_SENSOR',
-      }
-    )
-    const compoundBody = Body.create({
-      parts: [mainBody, frontSensor],
-      render: {
-        sprite: {
-          xOffset: 0.5,
-          yOffset: 0.5,
-        },
-      },
-    })
-
     this.sprite
       .setScale(2)
       .setFixedRotation()

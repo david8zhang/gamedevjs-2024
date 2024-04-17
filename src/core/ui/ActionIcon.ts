@@ -1,4 +1,4 @@
-import { UI } from '../scenes/UI'
+import { UI } from '../../scenes/UI'
 
 export interface ActionIconConfig {
   texture: string
