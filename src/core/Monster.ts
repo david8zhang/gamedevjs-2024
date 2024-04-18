@@ -1,5 +1,6 @@
 import Game from '../scenes/Game'
 import { CollisionCategory, CollisionLabel } from '../utils/Constants'
+import { UIValueBar } from './ui/UIValueBar'
 
 enum WalkDirections {
   LEFT = 'LEFT',
@@ -15,10 +16,12 @@ export interface MonsterConfig {
 
 export class Monster {
   private game: Game
+  private static HEALTH = 10
   private static WALK_SPEED = 1.5
   public sprite: Phaser.Physics.Matter.Sprite
   private currWalkDirection: WalkDirections
   private isTurning: boolean = false
+  private healthbar: UIValueBar
 
   constructor(game: Game, config: MonsterConfig) {
     this.game = game
@@ -61,10 +64,24 @@ export class Monster {
       }
     })
 
+    this.healthbar = new UIValueBar(this.game, {
+      x: this.sprite.x - 25,
+      y: this.sprite.y - this.sprite.displayHeight / 2 - 5,
+      width: 50,
+      height: 5,
+      maxValue: Monster.HEALTH,
+      borderWidth: 2,
+      radius: 0,
+    })
     this.game.events.on('update', this.update, this)
   }
 
   update() {
+    this.healthbar.setPosition(
+      this.sprite.x - 25,
+      this.sprite.y - this.sprite.displayHeight / 2 - 5
+    )
+
     this.sprite.setFlipX(this.currWalkDirection === WalkDirections.RIGHT)
     this.sprite.setVelocity(
       this.currWalkDirection === WalkDirections.RIGHT

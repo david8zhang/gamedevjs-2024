@@ -6,6 +6,7 @@ interface UIValueBarConfig {
   width: number
   borderWidth: number
   bgColor?: number
+  radius?: number
   fillColor?: number
   showBorder?: boolean
   isVertical?: boolean
@@ -24,6 +25,7 @@ export class UIValueBar {
   width: number
   showBorder: boolean
   borderWidth: number
+  radius: number = 4
   isVertical: boolean = false
   bgColor: number = 0x000000
   fillColor: number = 0x000000
@@ -42,6 +44,7 @@ export class UIValueBar {
       borderWidth,
       bgColor,
       fillColor,
+      radius,
     } = config
     this.x = x
     this.y = y
@@ -50,6 +53,9 @@ export class UIValueBar {
     this.width = width
     this.height = height
     this.borderWidth = borderWidth
+    if (radius !== undefined) {
+      this.radius = radius
+    }
 
     if (bgColor) {
       this.bgColor = bgColor
@@ -103,11 +109,16 @@ export class UIValueBar {
     return this.graphics.depth
   }
 
+  setPosition(x: number, y: number) {
+    this.x = x
+    this.y = y
+    this.draw()
+  }
+
   draw() {
     this.graphics.clear()
 
     // Border
-    const radius = 4
     const borderWidth = this.showBorder ? this.borderWidth : 0
     this.graphics.fillStyle(this.bgColor)
 
@@ -117,7 +128,7 @@ export class UIValueBar {
         this.y - borderWidth / 2,
         this.width + borderWidth,
         this.height + borderWidth,
-        radius
+        this.radius
       )
     }
 
@@ -132,11 +143,17 @@ export class UIValueBar {
         this.y + remainderLength,
         this.width,
         length,
-        radius
+        this.radius
       )
     } else {
       const length = Math.floor(percentage * this.width)
-      this.graphics.fillRoundedRect(this.x, this.y, length, this.height, radius)
+      this.graphics.fillRoundedRect(
+        this.x,
+        this.y,
+        length,
+        this.height,
+        this.radius
+      )
     }
   }
 
