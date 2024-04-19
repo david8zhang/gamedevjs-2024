@@ -34,6 +34,7 @@ export class Monster {
         CollisionCategory.FLOOR,
         CollisionCategory.WALLS,
         CollisionCategory.BOUNDS,
+        CollisionCategory.PLAYER_ENEMY_SENSOR,
       ])
       .setBounce(0)
       .setPosition(config.position.x, config.position.y)
@@ -61,6 +62,13 @@ export class Monster {
               ? WalkDirections.RIGHT
               : WalkDirections.LEFT
         }
+      }
+
+      if (
+        bodyA.label === CollisionLabel.PLAYER_ENEMY_SENSOR ||
+        bodyB.label === CollisionLabel.PLAYER_ENEMY_SENSOR
+      ) {
+        console.log('player take damage!')
       }
     })
 

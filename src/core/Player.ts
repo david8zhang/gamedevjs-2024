@@ -18,6 +18,7 @@ export class Player {
 
   private game: Game
   public sprite: Phaser.Physics.Matter.Sprite
+  public enemyDetector: Phaser.Physics.Matter.Sprite
   public inputController!: InputController
 
   constructor(game: Game) {
@@ -27,7 +28,18 @@ export class Player {
     // Bodies
     const { Bodies, Body } = (Phaser.Physics.Matter as any)
       .Matter as typeof MatterJS
-    const enemyDetector = Bodies.rectangle(
+
+    // Setup body & sensors
+    this.sprite
+      .setScale(2)
+      .setFixedRotation()
+      .setBounce(0)
+      .setPosition(Player.SPAWN_POSITION.x, Player.SPAWN_POSITION.y)
+      .setCollisionCategory(CollisionCategory.PLAYER)
+      .setCollidesWith([CollisionCategory.FLOOR, CollisionCategory.BOUNDS])
+
+    // Setup enemy detector
+    const mainBody = Bodies.rectangle(
       0,
       0,
       this.sprite.displayWidth,
@@ -37,33 +49,28 @@ export class Player {
         label: CollisionLabel.PLAYER_ENEMY_SENSOR,
       }
     )
-    enemyDetector.collisionFilter.group = CollisionCategory.PLAYER_ENEMY_SENSOR
-
-    const mainBody = Bodies.rectangle(
-      0,
-      0,
-      this.sprite.displayWidth,
-      this.sprite.displayHeight
-    )
     const compoundBody = Body.create({
-      parts: [mainBody, enemyDetector],
+      parts: [mainBody],
     })
-
-    // Setup body & sensors
-    this.sprite
+    this.enemyDetector = this.game.matter.add
+      .sprite(0, 0, '')
       .setExistingBody(compoundBody as BodyType)
-      .setScale(2)
+      .setVisible(false)
+      .setDisplaySize(this.sprite.displayWidth, this.sprite.displayHeight)
       .setFixedRotation()
-      .setBounce(0)
-      .setPosition(Player.SPAWN_POSITION.x, Player.SPAWN_POSITION.y)
-      .setCollisionCategory(CollisionCategory.PLAYER)
-      .setCollidesWith([CollisionCategory.FLOOR, CollisionCategory.BOUNDS])
+      .setCollisionCategory(CollisionCategory.PLAYER_ENEMY_SENSOR)
+      .setCollidesWith([CollisionCategory.ENEMY])
+      .setSensor(true)
 
     this.inputController = new InputController(this.game, {
       player: this,
       speed: Player.SPEED,
       jumpVelocity: Player.JUMP_VELOCITY,
       dashDistance: Player.DASH_DISTANCE,
+    })
+
+    this.game.events.on('update', () => {
+      this.enemyDetector.setPosition(this.sprite.x, this.sprite.y)
     })
   }
 }
