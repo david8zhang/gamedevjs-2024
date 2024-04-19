@@ -1,5 +1,10 @@
+import { BodyType } from 'matter'
 import Game from '../scenes/Game'
-import { CollisionCategory, Constants } from '../utils/Constants'
+import {
+  CollisionCategory,
+  CollisionLabel,
+  Constants,
+} from '../utils/Constants'
 import { InputController } from './InputController'
 
 export class Player {
@@ -17,11 +22,36 @@ export class Player {
 
   constructor(game: Game) {
     this.game = game
-
     this.sprite = this.game.matter.add.sprite(0, 0, 'player')
+
+    // Bodies
+    const { Bodies, Body } = (Phaser.Physics.Matter as any)
+      .Matter as typeof MatterJS
+    const enemyDetector = Bodies.rectangle(
+      0,
+      0,
+      this.sprite.displayWidth,
+      this.sprite.displayHeight,
+      {
+        isSensor: true,
+        label: CollisionLabel.PLAYER_ENEMY_SENSOR,
+      }
+    )
+    enemyDetector.collisionFilter.group = CollisionCategory.PLAYER_ENEMY_SENSOR
+
+    const mainBody = Bodies.rectangle(
+      0,
+      0,
+      this.sprite.displayWidth,
+      this.sprite.displayHeight
+    )
+    const compoundBody = Body.create({
+      parts: [mainBody, enemyDetector],
+    })
 
     // Setup body & sensors
     this.sprite
+      .setExistingBody(compoundBody as BodyType)
       .setScale(2)
       .setFixedRotation()
       .setBounce(0)

@@ -4,10 +4,12 @@ export enum CollisionCategory {
   WALLS = 0b00000100,
   FLOOR = 0b00001000,
   BOUNDS = 0b00010000,
+  PLAYER_ENEMY_SENSOR = 0b00100000,
 }
 
 export enum CollisionLabel {
   PLAYER = 'PLAYER',
+  PLAYER_ENEMY_SENSOR = 'PLAYER_ENEMY_SENSOR',
   ENEMY = 'ENEMY',
   WALLS = 'WALLS',
   FLOOR = 'FLOOR',
