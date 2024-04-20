@@ -6,6 +6,8 @@ import {
   Constants,
 } from '../utils/Constants'
 import { InputController } from './InputController'
+import { UI } from '../scenes/UI'
+import { UINumber } from './ui/UINumber'
 
 export class Player {
   private static SPAWN_POSITION = {
@@ -20,6 +22,7 @@ export class Player {
   public sprite: Phaser.Physics.Matter.Sprite
   public enemyDetector: Phaser.Physics.Matter.Sprite
   public inputController!: InputController
+  public isInvincible: boolean = false
 
   constructor(game: Game) {
     this.game = game
@@ -56,7 +59,6 @@ export class Player {
       .sprite(0, 0, '')
       .setExistingBody(compoundBody as BodyType)
       .setVisible(false)
-      .setDisplaySize(this.sprite.displayWidth, this.sprite.displayHeight)
       .setFixedRotation()
       .setCollisionCategory(CollisionCategory.PLAYER_ENEMY_SENSOR)
       .setCollidesWith([CollisionCategory.ENEMY])
@@ -72,5 +74,42 @@ export class Player {
     this.game.events.on('update', () => {
       this.enemyDetector.setPosition(this.sprite.x, this.sprite.y)
     })
+  }
+
+  takeDamage(damage: number) {
+    if (!this.isInvincible) {
+      this.isInvincible = true
+
+      // Add a bit of player knockback
+      this.sprite.setVelocityX(-5)
+      this.sprite.setVelocityY(-5)
+
+      UINumber.createNumber(
+        `${damage}`,
+        this.game,
+        this.sprite.x,
+        this.sprite.y - 20,
+        true
+      )
+
+      UI.instance.decreasePlayerHealth(damage)
+      // Add a flashing animation to indicate invincibilty window
+      const flashingEvent = this.game.time.addEvent({
+        delay: 100,
+        callback: () => {
+          if (this.sprite.isTinted) {
+            this.sprite.clearTint()
+          } else {
+            this.sprite.setTint(0xaaaaaa)
+          }
+        },
+        repeat: -1,
+      })
+      this.game.time.delayedCall(3000, () => {
+        this.isInvincible = false
+        this.sprite.clearTint()
+        flashingEvent.destroy()
+      })
+    }
   }
 }

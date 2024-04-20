@@ -18,6 +18,8 @@ export class Monster {
   private game: Game
   private static HEALTH = 10
   private static WALK_SPEED = 1.5
+  private static TOUCH_DAMAGE = 10
+
   public sprite: Phaser.Physics.Matter.Sprite
   private currWalkDirection: WalkDirections
   private isTurning: boolean = false
@@ -68,7 +70,7 @@ export class Monster {
         bodyA.label === CollisionLabel.PLAYER_ENEMY_SENSOR ||
         bodyB.label === CollisionLabel.PLAYER_ENEMY_SENSOR
       ) {
-        console.log('player take damage!')
+        this.game.player.takeDamage(Monster.TOUCH_DAMAGE)
       }
     })
 

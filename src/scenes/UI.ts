@@ -61,5 +61,25 @@ export class UI extends Phaser.Scene {
       this.healthbar.y + 2,
       'HP'
     )
+
+    this.healthText = this.add
+      .text(
+        (this.healthbar.x + (this.healthbar.x + this.healthbar.width)) / 2,
+        this.healthbar.y + 3,
+        `${this.healthbar.currValue}/${this.healthbar.maxValue}`,
+        {
+          fontSize: '16px',
+          color: 'white',
+        }
+      )
+      .setDepth(1000)
+      .setOrigin(0.5, 0)
+  }
+
+  decreasePlayerHealth(amount: number) {
+    this.healthbar.decrease(amount)
+    this.healthText.setText(
+      `${this.healthbar.currValue}/${this.healthbar.maxValue}`
+    )
   }
 }
