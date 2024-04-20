@@ -7,6 +7,7 @@ import {
   Constants,
 } from '../utils/Constants'
 import { MonsterSpawner } from '../core/MonsterSpawner'
+import { createAnims } from '../core/anims/createAnims'
 
 export default class Game extends Phaser.Scene {
   public player!: Player
@@ -17,6 +18,8 @@ export default class Game extends Phaser.Scene {
     super('game')
   }
   create() {
+    createAnims(this.anims)
+
     this.map = new Map(this, {
       cellSize: 18,
       walkableLayer: 'Platforms',
@@ -66,14 +69,16 @@ export default class Game extends Phaser.Scene {
     const spawnerLayer = this.map.tilemap.getObjectLayer('Spawner')
     if (spawnerLayer) {
       const spawnerObjects = spawnerLayer.objects
-      spawnerObjects.forEach((obj) => {
-        const spawner = new MonsterSpawner(this, {
-          position: {
-            x: obj.x!,
-            y: obj.y!,
-          },
-        })
-        this.spawners.push(spawner)
+      spawnerObjects.forEach((obj, index) => {
+        if (index == 0) {
+          const spawner = new MonsterSpawner(this, {
+            position: {
+              x: obj.x!,
+              y: obj.y!,
+            },
+          })
+          this.spawners.push(spawner)
+        }
       })
     }
   }

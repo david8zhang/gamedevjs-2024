@@ -20,6 +20,15 @@ export default class Preload extends Phaser.Scene {
 
     // Monsters
     this.load.image('monster', 'characters/monsters/sample-monster.png')
+
+    // Animations
+    this.load.atlas(
+      'slash-hit',
+      'animations/slash-hit.png',
+      'animations/slash-hit.json'
+    )
+    this.load.atlas('slash1', 'animations/slash1.png', 'animations/slash1.json')
+    this.load.atlas('slash2', 'animations/slash2.png', 'animations/slash2.json')
   }
 
   create() {

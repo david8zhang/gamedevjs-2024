@@ -41,14 +41,16 @@ export class InputController {
       Phaser.Input.Keyboard.Events.ANY_KEY_DOWN,
       (e: Phaser.Input.Keyboard.Key) => {
         switch (e.keyCode) {
-          case Phaser.Input.Keyboard.KeyCodes.ALT: {
-            // this.player.sprite.setVelocityY(-this.jumpVelocity)
+          case Phaser.Input.Keyboard.KeyCodes.SPACE: {
             this.jump()
             break
           }
-          case Phaser.Input.Keyboard.KeyCodes.Z: {
+          case Phaser.Input.Keyboard.KeyCodes.S: {
             this.dash()
             break
+          }
+          case Phaser.Input.Keyboard.KeyCodes.F: {
+            this.player.attack()
           }
           default:
             return
