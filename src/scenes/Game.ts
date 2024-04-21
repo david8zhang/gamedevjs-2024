@@ -13,9 +13,13 @@ export default class Game extends Phaser.Scene {
   public player!: Player
   public map!: Map
   public spawners: MonsterSpawner[] = []
+  public static instance: Game
 
   constructor() {
     super('game')
+    if (!Game.instance) {
+      Game.instance = this
+    }
   }
   create() {
     createAnims(this.anims)
@@ -69,16 +73,14 @@ export default class Game extends Phaser.Scene {
     const spawnerLayer = this.map.tilemap.getObjectLayer('Spawner')
     if (spawnerLayer) {
       const spawnerObjects = spawnerLayer.objects
-      spawnerObjects.forEach((obj, index) => {
-        if (index == 0) {
-          const spawner = new MonsterSpawner(this, {
-            position: {
-              x: obj.x!,
-              y: obj.y!,
-            },
-          })
-          this.spawners.push(spawner)
-        }
+      spawnerObjects.forEach((obj) => {
+        const spawner = new MonsterSpawner(this, {
+          position: {
+            x: obj.x!,
+            y: obj.y!,
+          },
+        })
+        this.spawners.push(spawner)
       })
     }
   }

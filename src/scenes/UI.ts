@@ -1,4 +1,5 @@
 import { ActionIcon } from '../core/ui/ActionIcon'
+import { GameOverModal } from '../core/ui/GameOverModal'
 import { UIValueBar } from '../core/ui/UIValueBar'
 import { Constants } from '../utils/Constants'
 
@@ -12,6 +13,7 @@ export class UI extends Phaser.Scene {
   public healthbar!: UIValueBar
   public healthLabelText!: Phaser.GameObjects.Text
   public healthText!: Phaser.GameObjects.Text
+  public gameOverModal!: GameOverModal
 
   constructor() {
     super('ui')
@@ -74,6 +76,8 @@ export class UI extends Phaser.Scene {
       )
       .setDepth(1000)
       .setOrigin(0.5, 0)
+
+    this.gameOverModal = new GameOverModal(this)
   }
 
   decreasePlayerHealth(amount: number) {

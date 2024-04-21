@@ -93,6 +93,9 @@ export class InputController {
   }
 
   jump() {
+    if (this.player.isDead) {
+      return
+    }
     if (this.isGrounded()) {
       this.player.sprite.setVelocityY(-this.jumpVelocity)
     } else {
@@ -103,23 +106,27 @@ export class InputController {
           delay: 125,
           repeat: 16,
           callback: () => {
-            UI.instance.jumpIcon.updateCooldownOverlay(
-              1 - cooldownEvent.getOverallProgress()
-            )
+            if (UI.instance.jumpIcon) {
+              UI.instance.jumpIcon.updateCooldownOverlay(
+                1 - cooldownEvent.getOverallProgress()
+              )
+            }
             if (cooldownEvent.getOverallProgress() == 1) {
               this.doubleJumpOnCooldown = false
             }
           },
         })
-        UI.instance.jumpIcon.updateCooldownOverlay(
-          1 - cooldownEvent.getOverallProgress()
-        )
+        if (UI.instance.jumpIcon) {
+          UI.instance.jumpIcon.updateCooldownOverlay(
+            1 - cooldownEvent.getOverallProgress()
+          )
+        }
       }
     }
   }
 
   dash() {
-    if (!this.dashOnCooldown) {
+    if (!this.dashOnCooldown && !this.player.isDead) {
       const sprite = this.player.sprite
       const endX = this.getDashEndX()
       const dashSpeed = 0.75
@@ -162,7 +169,7 @@ export class InputController {
   }
 
   update() {
-    if (!this.isDashing) {
+    if (!this.isDashing && !this.player.isDead) {
       const sprite = this.player.sprite
       if (this.keyLeft.isDown) {
         sprite.setFlipX(false)

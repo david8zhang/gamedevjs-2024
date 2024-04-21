@@ -18,7 +18,7 @@ export class Player {
   private static SPEED = 5
   private static JUMP_VELOCITY = 12
   private static DASH_DISTANCE = 150
-  private static DAMAGE = 10
+  public static DAMAGE = 5
 
   private game: Game
   public sprite: Phaser.Physics.Matter.Sprite
@@ -30,7 +30,8 @@ export class Player {
 
   public isAttacking: boolean = false
   public attackHitboxActive: boolean = false
-  public processedDamageEvent: boolean = false
+  public processedDamageMonsterIds: Set<String> = new Set()
+  public isDead: boolean = false
 
   constructor(game: Game) {
     this.game = game
@@ -55,7 +56,9 @@ export class Player {
     })
 
     this.game.events.on('update', () => {
-      this.enemyDetector.setPosition(this.sprite.x, this.sprite.y)
+      if (this.sprite.active) {
+        this.enemyDetector.setPosition(this.sprite.x, this.sprite.y)
+      }
     })
     this.setupAttackSprite()
   }
@@ -128,7 +131,7 @@ export class Player {
       .setDepth(1000)
       .on(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
         this.isAttacking = false
-        this.processedDamageEvent = false
+        this.processedDamageMonsterIds.clear()
       })
       .on(Phaser.Animations.Events.ANIMATION_UPDATE, (_: any, frame: any) => {
         if (frame.index <= 3) {
@@ -144,24 +147,33 @@ export class Player {
         bodyA.label === CollisionLabel.ENEMY ||
         bodyB.label === CollisionLabel.ENEMY
       ) {
-        if (this.attackHitboxActive && !this.processedDamageEvent) {
-          this.processedDamageEvent = true
+        if (this.attackHitboxActive) {
           const enemyBody: BodyType =
             bodyA.label === CollisionLabel.ENEMY ? bodyA : bodyB
           const enemyGameObject = enemyBody.gameObject
           if (enemyGameObject) {
             const enemyRef = enemyGameObject.getData('ref') as Monster
 
-            // Add a bit of knockback
-            enemyRef.sprite.setVelocity(this.attackSprite.flipX ? -2 : 2, -2.5)
+            if (
+              !this.processedDamageMonsterIds.has(enemyRef.id) &&
+              !enemyRef.isDead &&
+              enemyRef.isHitboxActive
+            ) {
+              this.processedDamageMonsterIds.add(enemyRef.id)
+              // Add a bit of knockback
+              enemyRef.sprite.setVelocity(
+                this.attackSprite.flipX ? -2 : 2,
+                -2.5
+              )
 
-            // Play the hit sprite
-            this.hitSprite.setPosition(enemyRef.sprite.x, enemyRef.sprite.y)
-            this.hitSprite
-              .setVisible(true)
-              .play('slash-hit')
-              .setFlipX(this.attackSprite.flipX)
-            enemyRef.takeDamage(Player.DAMAGE)
+              // Play the hit sprite
+              this.hitSprite.setPosition(enemyRef.sprite.x, enemyRef.sprite.y)
+              this.hitSprite
+                .setVisible(true)
+                .play('slash-hit')
+                .setFlipX(this.attackSprite.flipX)
+              enemyRef.takeDamage(Player.DAMAGE)
+            }
           }
         }
       }
@@ -206,23 +218,45 @@ export class Player {
       )
 
       UI.instance.decreasePlayerHealth(damage)
-      // Add a flashing animation to indicate invincibilty window
-      const flashingEvent = this.game.time.addEvent({
-        delay: 100,
-        callback: () => {
-          if (this.sprite.isTinted) {
-            this.sprite.clearTint()
-          } else {
-            this.sprite.setTint(0xaaaaaa)
-          }
-        },
-        repeat: -1,
-      })
-      this.game.time.delayedCall(3000, () => {
-        this.isInvincible = false
-        this.sprite.clearTint()
-        flashingEvent.destroy()
-      })
+
+      if (UI.instance.healthbar.currValue == 0) {
+        this.die()
+      } else {
+        // Add a flashing animation to indicate invincibilty window
+        const flashingEvent = this.game.time.addEvent({
+          delay: 100,
+          callback: () => {
+            if (this.sprite.isTinted) {
+              this.sprite.clearTint()
+            } else {
+              this.sprite.setTint(0xaaaaaa)
+            }
+          },
+          repeat: -1,
+        })
+        this.game.time.delayedCall(3000, () => {
+          this.isInvincible = false
+          this.sprite.clearTint()
+          flashingEvent.destroy()
+        })
+      }
     }
+  }
+
+  die() {
+    this.isDead = true
+    this.sprite.setVelocity(0, 0)
+    this.game.tweens.add({
+      targets: [this.sprite],
+      alpha: {
+        from: 1,
+        to: 0,
+      },
+      duration: 500,
+      ease: Phaser.Math.Easing.Sine.Out,
+      onComplete: () => {
+        UI.instance.gameOverModal.show()
+      },
+    })
   }
 }
