@@ -241,7 +241,7 @@ export class Player {
       this.isInvincible = true
 
       // Add a bit of player knockback
-      this.sprite.setVelocity(-5, -5)
+      this.sprite.setVelocity(-2, -2)
 
       UINumber.createNumber(
         `${damage}`,

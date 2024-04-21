@@ -8,6 +8,7 @@ import {
 } from '../utils/Constants'
 import { MonsterSpawner } from '../core/MonsterSpawner'
 import { createAnims } from '../core/anims/createAnims'
+import { BodyType } from 'matter'
 
 export default class Game extends Phaser.Scene {
   public player!: Player
@@ -39,34 +40,27 @@ export default class Game extends Phaser.Scene {
       Constants.GAME_HEIGHT
     )
 
-    this.matter.add
+    const leftWall = this.matter.add
       .sprite(0, Constants.GAME_HEIGHT / 2, '', undefined, {
         label: CollisionLabel.BOUNDS,
       })
-      .setDisplaySize(1, Constants.GAME_HEIGHT)
+      .setDisplaySize(1, Constants.GAME_HEIGHT * 2)
       .setVisible(false)
       .setStatic(true)
       .setCollisionCategory(CollisionCategory.BOUNDS)
+      .setFriction(0)
 
-    this.matter.add
+    const rightWall = this.matter.add
       .sprite(Constants.GAME_WIDTH, Constants.GAME_HEIGHT / 2, '', undefined, {
         label: CollisionLabel.BOUNDS,
       })
-      .setDisplaySize(1, Constants.GAME_HEIGHT)
+      .setDisplaySize(1, Constants.GAME_HEIGHT * 2)
       .setVisible(false)
       .setStatic(true)
       .setCollisionCategory(CollisionCategory.BOUNDS)
+      .setFriction(0)
 
-    this.matter.add
-      .sprite(Constants.GAME_WIDTH / 2, 0, '', undefined, {
-        label: CollisionLabel.BOUNDS,
-      })
-      .setDisplaySize(Constants.GAME_WIDTH, 1)
-      .setVisible(false)
-      .setStatic(true)
-      .setCollisionCategory(CollisionCategory.BOUNDS)
-
-    this.matter.add
+    const bottomWall = this.matter.add
       .sprite(
         Constants.GAME_WIDTH / 2,
         Constants.GAME_HEIGHT - 36,
@@ -80,6 +74,10 @@ export default class Game extends Phaser.Scene {
       .setVisible(false)
       .setStatic(true)
       .setCollisionCategory(CollisionCategory.BOUNDS)
+
+    this.matter.world.setBodyRenderStyle(leftWall.body as BodyType, 0xff0000)
+    this.matter.world.setBodyRenderStyle(rightWall.body as BodyType, 0xff0000)
+    this.matter.world.setBodyRenderStyle(bottomWall.body as BodyType, 0xff0000)
 
     this.spawnMonsters()
   }
