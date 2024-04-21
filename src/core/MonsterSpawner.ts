@@ -25,7 +25,7 @@ export class MonsterSpawner {
           const monster = new Monster(this.game, {
             position: {
               x: config.position.x,
-              y: config.position.y,
+              y: config.position.y - 10,
             },
           })
           this.monsters.push(monster)

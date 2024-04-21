@@ -89,7 +89,10 @@ export class InputController {
         }
       }
     }
-    return Math.min(Constants.GAME_WIDTH, Math.max(0, endX))
+    return Math.min(
+      Constants.GAME_WIDTH - this.player.sprite.displayWidth / 2,
+      Math.max(0, endX)
+    )
   }
 
   jump() {
@@ -129,6 +132,7 @@ export class InputController {
     if (!this.dashOnCooldown && !this.player.isDead) {
       const sprite = this.player.sprite
       const endX = this.getDashEndX()
+
       const dashSpeed = 0.75
       const duration = Math.abs(sprite.x - endX) / dashSpeed
       this.dashOnCooldown = true

@@ -22,6 +22,8 @@ export class Player {
 
   private game: Game
   public sprite: Phaser.Physics.Matter.Sprite
+  public mainBody!: BodyType
+
   public enemyDetector!: Phaser.Physics.Matter.Sprite
   public inputController!: InputController
   public attackSprite!: Phaser.Physics.Matter.Sprite
@@ -38,14 +40,7 @@ export class Player {
     this.sprite = this.game.matter.add.sprite(0, 0, 'player')
 
     // Setup body & sensors
-    this.sprite
-      .setScale(2)
-      .setFixedRotation()
-      .setBounce(0)
-      .setPosition(Player.SPAWN_POSITION.x, Player.SPAWN_POSITION.y)
-      .setCollisionCategory(CollisionCategory.PLAYER)
-      .setCollidesWith([CollisionCategory.FLOOR, CollisionCategory.BOUNDS])
-
+    this.setupGroundSensor()
     this.setupEnemySensor()
 
     this.inputController = new InputController(this.game, {
@@ -57,10 +52,49 @@ export class Player {
 
     this.game.events.on('update', () => {
       if (this.sprite.active) {
-        this.enemyDetector.setPosition(this.sprite.x, this.sprite.y)
+        this.enemyDetector.setPosition(this.sprite.x, this.sprite.y - 20)
+        const velocity = this.sprite.getVelocity()
+        if (velocity.y! < 0) {
+          this.mainBody.collisionFilter.mask = CollisionCategory.BOUNDS
+        } else {
+          this.mainBody.collisionFilter.mask =
+            CollisionCategory.BOUNDS | CollisionCategory.FLOOR
+        }
       }
     })
     this.setupAttackSprite()
+  }
+
+  setupGroundSensor() {
+    const { Bodies, Body } = (Phaser.Physics.Matter as any)
+      .Matter as typeof MatterJS
+    const rectangle = Bodies.rectangle(
+      0,
+      0,
+      this.sprite.displayWidth * 0.7,
+      this.sprite.displayHeight * 0.2
+    ) as BodyType
+
+    this.mainBody = Body.create({
+      parts: [rectangle],
+      render: {
+        sprite: {
+          xOffset: 0,
+          yOffset: 0.4,
+        },
+      },
+      restitution: 0,
+      label: CollisionLabel.PLAYER,
+    }) as BodyType
+    this.mainBody.collisionFilter.category = CollisionCategory.PLAYER
+    this.mainBody.collisionFilter.mask =
+      CollisionCategory.FLOOR | CollisionCategory.BOUNDS
+
+    this.sprite
+      .setExistingBody(this.mainBody)
+      .setScale(2)
+      .setPosition(Player.SPAWN_POSITION.x, Player.SPAWN_POSITION.y)
+      .setFixedRotation()
   }
 
   setupEnemySensor() {

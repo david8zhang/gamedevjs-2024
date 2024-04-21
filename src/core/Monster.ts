@@ -44,7 +44,7 @@ export class Monster {
         CollisionCategory.FLOOR,
         CollisionCategory.WALLS,
         CollisionCategory.BOUNDS,
-        CollisionCategory.PLAYER_ENEMY_SENSOR,
+        // CollisionCategory.PLAYER_ENEMY_SENSOR,
         CollisionCategory.ATTACK_HITBOX,
       ])
       .setBounce(0)

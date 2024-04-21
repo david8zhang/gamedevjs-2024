@@ -66,6 +66,21 @@ export default class Game extends Phaser.Scene {
       .setStatic(true)
       .setCollisionCategory(CollisionCategory.BOUNDS)
 
+    this.matter.add
+      .sprite(
+        Constants.GAME_WIDTH / 2,
+        Constants.GAME_HEIGHT - 36,
+        '',
+        undefined,
+        {
+          label: CollisionLabel.BOUNDS,
+        }
+      )
+      .setDisplaySize(Constants.GAME_WIDTH, 1)
+      .setVisible(false)
+      .setStatic(true)
+      .setCollisionCategory(CollisionCategory.BOUNDS)
+
     this.spawnMonsters()
   }
 
