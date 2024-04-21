@@ -11,6 +11,17 @@ export const createAnims = (anims: Phaser.Animations.AnimationManager) => {
   })
 
   anims.create({
+    key: 'slash-horizontal-hit',
+    frames: anims.generateFrameNames('slash-horizontal-hit', {
+      start: 0,
+      end: 5,
+      suffix: '.png',
+    }),
+    repeat: 0,
+    frameRate: 12,
+  })
+
+  anims.create({
     key: 'slash-horizontal',
     frames: anims.generateFrameNames('slash-horizontal', {
       start: 0,

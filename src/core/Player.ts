@@ -32,6 +32,13 @@ export class Player {
   public isDead: boolean = false
   public animQueue: string[] = []
 
+  // Dash
+  public isDashing: boolean = false
+  public dashOnCooldown: boolean = false
+
+  // Jump
+  public doubleJumpOnCooldown: boolean = false
+
   constructor(game: Game) {
     this.game = game
     this.sprite = this.game.matter.add.sprite(0, 0, 'player')
@@ -59,7 +66,7 @@ export class Player {
         }
       }
     })
-    this.setupAttackSprite()
+    this.setupAttackAnimMap()
   }
 
   setupGroundSensor() {
@@ -120,9 +127,9 @@ export class Player {
       .setSensor(true)
   }
 
-  setupAttackSprite() {
+  setupAttackAnimMap() {
     const horizontalSlash = new AttackSprite(this.game, {
-      hitAnimKey: 'slash-vertical-hit',
+      hitAnimKey: 'slash-horizontal-hit',
       attackAnimKey: 'slash-horizontal',
       hitboxScale: {
         width: 2,
@@ -149,8 +156,6 @@ export class Player {
       'slash-horizontal': horizontalSlash,
       'slash-vertical': verticalSlash,
     }
-
-    console.log(this.attackAnimMap)
   }
 
   onAnimationComplete() {
@@ -164,13 +169,120 @@ export class Player {
   attack() {
     if (!this.isAttacking) {
       this.isAttacking = true
-      this.animQueue = [
-        'slash-horizontal',
-        'slash-vertical',
-        'slash-horizontal',
-        'slash-vertical',
-      ]
+      this.animQueue = ['slash-horizontal', 'slash-vertical']
       this.playNextAnimation()
+    }
+  }
+
+  getDashEndX() {
+    const sprite = this.sprite
+    const dashDistance = sprite.flipX
+      ? Player.DASH_DISTANCE
+      : -Player.DASH_DISTANCE
+    const endX = sprite.x + dashDistance
+    const platformLayer = this.game.map.getLayer('Platforms')!
+
+    // There's probably a more efficient way to check platform edges but I'm lazy and it works
+    if (sprite.flipX) {
+      for (let x = sprite.x; x < endX; x++) {
+        const tile = platformLayer.tilemapLayer.getTileAtWorldXY(x, sprite.y)
+        if (tile) {
+          return tile.getLeft()
+        }
+      }
+    } else {
+      for (let x = sprite.x; x > endX; x--) {
+        const tile = platformLayer.tilemapLayer.getTileAtWorldXY(x, sprite.y)
+        if (tile) {
+          return tile.getRight()
+        }
+      }
+    }
+    return Math.min(
+      Constants.GAME_WIDTH - this.sprite.displayWidth / 2,
+      Math.max(0, endX)
+    )
+  }
+
+  dash() {
+    if (!this.dashOnCooldown && !this.isDead) {
+      const sprite = this.sprite
+      const endX = this.getDashEndX()
+
+      const dashSpeed = 0.75
+      const duration = Math.abs(sprite.x - endX) / dashSpeed
+      this.dashOnCooldown = true
+      this.game.tweens.add({
+        targets: [sprite],
+        onStart: () => {
+          sprite.setTint(0x0000ff)
+          this.isDashing = true
+        },
+        onComplete: () => {
+          sprite.clearTint()
+          this.isDashing = false
+        },
+        x: {
+          from: sprite.x,
+          to: endX,
+        },
+        ease: Phaser.Math.Easing.Sine.InOut,
+        duration: duration,
+      })
+
+      const cooldownEvent = this.game.time.addEvent({
+        delay: 125,
+        repeat: 32,
+        callback: () => {
+          UI.instance.dashIcon.updateCooldownOverlay(
+            1 - cooldownEvent.getOverallProgress()
+          )
+          if (cooldownEvent.getOverallProgress() == 1) {
+            this.dashOnCooldown = false
+          }
+        },
+      })
+      UI.instance.dashIcon.updateCooldownOverlay(
+        1 - cooldownEvent.getOverallProgress()
+      )
+    }
+  }
+
+  isGrounded() {
+    const velocity = this.sprite.getVelocity()
+    return Math.abs(velocity.y!) <= 0.0001
+  }
+
+  jump() {
+    if (this.isDead) {
+      return
+    }
+    if (this.isGrounded()) {
+      this.sprite.setVelocityY(-Player.JUMP_VELOCITY)
+    } else {
+      if (!this.doubleJumpOnCooldown) {
+        this.doubleJumpOnCooldown = true
+        this.sprite.setVelocityY(-Player.JUMP_VELOCITY)
+        const cooldownEvent = this.game.time.addEvent({
+          delay: 125,
+          repeat: 16,
+          callback: () => {
+            if (UI.instance.jumpIcon) {
+              UI.instance.jumpIcon.updateCooldownOverlay(
+                1 - cooldownEvent.getOverallProgress()
+              )
+            }
+            if (cooldownEvent.getOverallProgress() == 1) {
+              this.doubleJumpOnCooldown = false
+            }
+          },
+        })
+        if (UI.instance.jumpIcon) {
+          UI.instance.jumpIcon.updateCooldownOverlay(
+            1 - cooldownEvent.getOverallProgress()
+          )
+        }
+      }
     }
   }
 

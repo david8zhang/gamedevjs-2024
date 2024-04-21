@@ -17,7 +17,6 @@ export interface AttackSpriteConfig {
 export class AttackSprite {
   private game: Game
   private sprite: Phaser.Physics.Matter.Sprite
-  private hitSprite: Phaser.GameObjects.Sprite
   private attackHitboxActive: boolean = false
   private processedDamageMonsterIds: Set<String> = new Set()
   private attackAnimKey: string
@@ -28,12 +27,6 @@ export class AttackSprite {
     this.sprite = this.game.matter.add.sprite(0, 0, '')
     this.attackAnimKey = config.attackAnimKey
     this.hitAnimKey = config.hitAnimKey
-
-    this.hitSprite = this.game.add
-      .sprite(this.sprite.x, this.sprite.y, '')
-      .setVisible(false)
-      .setScale(2)
-      .setDepth(1000)
 
     const { Bodies, Body } = (Phaser.Physics.Matter as any)
       .Matter as typeof MatterJS
@@ -93,8 +86,16 @@ export class AttackSprite {
               enemyRef.sprite.setVelocity(this.sprite.flipX ? -2 : 2, -2.5)
 
               // Play the hit sprite
-              this.hitSprite.setPosition(enemyRef.sprite.x, enemyRef.sprite.y)
-              this.hitSprite
+              const hitSprite = this.game.add
+                .sprite(this.sprite.x, this.sprite.y, '')
+                .setVisible(false)
+                .setScale(2)
+                .setDepth(1000)
+                .on(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
+                  hitSprite.destroy()
+                })
+              hitSprite.setPosition(enemyRef.sprite.x, enemyRef.sprite.y)
+              hitSprite
                 .setVisible(true)
                 .play(this.hitAnimKey)
                 .setFlipX(this.sprite.flipX)

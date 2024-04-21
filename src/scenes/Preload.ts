@@ -38,6 +38,11 @@ export default class Preload extends Phaser.Scene {
       'animations/slash-horizontal.png',
       'animations/slash-horizontal.json'
     )
+    this.load.atlas(
+      'slash-horizontal-hit',
+      'animations/slash-horizontal-hit.png',
+      'animations/slash-horizontal-hit.json'
+    )
   }
 
   create() {
