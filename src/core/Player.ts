@@ -8,7 +8,7 @@ import {
 import { InputController } from './InputController'
 import { UI } from '../scenes/UI'
 import { UINumber } from './ui/UINumber'
-import { Monster } from './Monster'
+import { AttackSprite } from './AttackSprite'
 
 export class Player {
   private static SPAWN_POSITION = {
@@ -21,19 +21,16 @@ export class Player {
   public static DAMAGE = 5
 
   private game: Game
+
   public sprite: Phaser.Physics.Matter.Sprite
   public mainBody!: BodyType
-
   public enemyDetector!: Phaser.Physics.Matter.Sprite
   public inputController!: InputController
-  public attackSprite!: Phaser.Physics.Matter.Sprite
-  public hitSprite!: Phaser.GameObjects.Sprite
+  public attackAnimMap: { [key: string]: AttackSprite } = {}
   public isInvincible: boolean = false
-
   public isAttacking: boolean = false
-  public attackHitboxActive: boolean = false
-  public processedDamageMonsterIds: Set<String> = new Set()
   public isDead: boolean = false
+  public animQueue: string[] = []
 
   constructor(game: Game) {
     this.game = game
@@ -124,116 +121,78 @@ export class Player {
   }
 
   setupAttackSprite() {
-    this.attackSprite = this.game.matter.add.sprite(
-      this.sprite.x,
-      this.sprite.y,
-      ''
-    )
+    const horizontalSlash = new AttackSprite(this.game, {
+      hitAnimKey: 'slash-vertical-hit',
+      attackAnimKey: 'slash-horizontal',
+      hitboxScale: {
+        width: 2,
+        height: 0.75,
+      },
+      onComplete: () => {
+        this.onAnimationComplete()
+      },
+    })
 
-    this.hitSprite = this.game.add
-      .sprite(this.sprite.x, this.sprite.y, '')
-      .setVisible(false)
-      .setScale(2)
-      .setDepth(1000)
+    const verticalSlash = new AttackSprite(this.game, {
+      hitAnimKey: 'slash-vertical-hit',
+      attackAnimKey: 'slash-vertical',
+      hitboxScale: {
+        width: 2,
+        height: 0.75,
+      },
+      onComplete: () => {
+        this.onAnimationComplete()
+      },
+    })
 
-    const { Bodies, Body } = (Phaser.Physics.Matter as any)
-      .Matter as typeof MatterJS
-    const mainBody = Bodies.rectangle(
-      0,
-      0,
-      this.sprite.displayWidth,
-      this.sprite.displayHeight * 0.6,
-      {
-        isSensor: true,
-      }
-    )
-    const compoundBody = Body.create({
-      parts: [mainBody],
-      label: CollisionLabel.ATTACK_HITBOX,
-    }) as BodyType
+    this.attackAnimMap = {
+      'slash-horizontal': horizontalSlash,
+      'slash-vertical': verticalSlash,
+    }
 
-    compoundBody.collisionFilter.category = CollisionCategory.ATTACK_HITBOX
-    compoundBody.collisionFilter.mask = CollisionCategory.ENEMY
+    console.log(this.attackAnimMap)
+  }
 
-    this.attackSprite
-      .setExistingBody(compoundBody as BodyType)
-      .setVisible(false)
-      .setStatic(true)
-      .setFixedRotation()
-      .setScale(3)
-      .setSensor(true)
-      .setDepth(1000)
-      .on(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
-        this.isAttacking = false
-        this.processedDamageMonsterIds.clear()
-      })
-      .on(Phaser.Animations.Events.ANIMATION_UPDATE, (_: any, frame: any) => {
-        if (frame.index <= 3) {
-          this.attackHitboxActive = true
-        } else {
-          this.attackHitboxActive = false
-        }
-      })
-
-    mainBody.onCollideActiveCallback = (e: any) => {
-      const { bodyA, bodyB } = e
-      if (
-        bodyA.label === CollisionLabel.ENEMY ||
-        bodyB.label === CollisionLabel.ENEMY
-      ) {
-        if (this.attackHitboxActive) {
-          const enemyBody: BodyType =
-            bodyA.label === CollisionLabel.ENEMY ? bodyA : bodyB
-          const enemyGameObject = enemyBody.gameObject
-          if (enemyGameObject) {
-            const enemyRef = enemyGameObject.getData('ref') as Monster
-
-            if (
-              !this.processedDamageMonsterIds.has(enemyRef.id) &&
-              !enemyRef.isDead &&
-              enemyRef.isHitboxActive
-            ) {
-              this.processedDamageMonsterIds.add(enemyRef.id)
-              // Add a bit of knockback
-              enemyRef.sprite.setVelocity(
-                this.attackSprite.flipX ? -2 : 2,
-                -2.5
-              )
-
-              // Play the hit sprite
-              this.hitSprite.setPosition(enemyRef.sprite.x, enemyRef.sprite.y)
-              this.hitSprite
-                .setVisible(true)
-                .play('slash-hit')
-                .setFlipX(this.attackSprite.flipX)
-              enemyRef.takeDamage(Player.DAMAGE)
-            }
-          }
-        }
-      }
+  onAnimationComplete() {
+    if (this.animQueue.length == 0) {
+      this.isAttacking = false
+    } else {
+      this.playNextAnimation()
     }
   }
 
   attack() {
     if (!this.isAttacking) {
       this.isAttacking = true
-      const facingRight = this.sprite.flipX
-      this.attackSprite.setVisible(true)
-      this.attackSprite.play('slash1')
-      if (facingRight) {
-        this.attackSprite.setFlipX(false)
-        this.attackSprite.setPosition(
-          this.sprite.x + this.sprite.displayWidth / 2 + 25,
-          this.sprite.y
-        )
-      } else {
-        this.attackSprite.setFlipX(true)
-        this.attackSprite.setPosition(
-          this.sprite.x - (this.sprite.displayWidth / 2 + 25),
-          this.sprite.y
-        )
-      }
+      this.animQueue = [
+        'slash-horizontal',
+        'slash-vertical',
+        'slash-horizontal',
+        'slash-vertical',
+      ]
+      this.playNextAnimation()
     }
+  }
+
+  playNextAnimation() {
+    const animKey = this.animQueue.shift() as string
+    const attackSprite = this.attackAnimMap[animKey]
+    const facingRight = this.sprite.flipX
+    if (facingRight) {
+      attackSprite.setFlipX(false)
+      attackSprite.setPosition(
+        this.sprite.x + this.sprite.displayWidth / 2 + 25,
+        this.sprite.y - 25
+      )
+    } else {
+      attackSprite.setFlipX(true)
+      attackSprite.setPosition(
+        this.sprite.x - (this.sprite.displayWidth / 2 + 25),
+        this.sprite.y - 25
+      )
+    }
+    attackSprite.setVisible(true)
+    attackSprite.play()
   }
 
   takeDamage(damage: number) {

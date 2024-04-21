@@ -17,18 +17,27 @@ export default class Preload extends Phaser.Scene {
     // Skill icons
     this.load.image('dash', 'icons/dash.png')
     this.load.image('jump', 'icons/jump.png')
+    this.load.image('throwing-stars', 'icons/throwing-stars.png')
 
     // Monsters
     this.load.image('monster', 'characters/monsters/sample-monster.png')
 
     // Animations
     this.load.atlas(
-      'slash-hit',
-      'animations/slash-hit.png',
-      'animations/slash-hit.json'
+      'slash-vertical-hit',
+      'animations/slash-vertical-hit.png',
+      'animations/slash-vertical-hit.json'
     )
-    this.load.atlas('slash1', 'animations/slash1.png', 'animations/slash1.json')
-    this.load.atlas('slash2', 'animations/slash2.png', 'animations/slash2.json')
+    this.load.atlas(
+      'slash-vertical',
+      'animations/slash-vertical.png',
+      'animations/slash-vertical.json'
+    )
+    this.load.atlas(
+      'slash-horizontal',
+      'animations/slash-horizontal.png',
+      'animations/slash-horizontal.json'
+    )
   }
 
   create() {

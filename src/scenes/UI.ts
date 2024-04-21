@@ -6,6 +6,7 @@ import { Constants } from '../utils/Constants'
 export class UI extends Phaser.Scene {
   public dashIcon!: ActionIcon
   public jumpIcon!: ActionIcon
+  public throwingStarIcon!: ActionIcon
   public static instance: UI
 
   // Health bar
@@ -36,6 +37,13 @@ export class UI extends Phaser.Scene {
         y: 5,
       },
       texture: 'jump',
+    })
+    this.throwingStarIcon = new ActionIcon(this, {
+      position: {
+        x: 105,
+        y: 5,
+      },
+      texture: 'throwing-stars',
     })
 
     const graphics = this.add.graphics()
