@@ -4,7 +4,7 @@ export default class Preload extends Phaser.Scene {
   }
 
   preload() {
-    this.load.image('player', 'characters/player.png')
+    // this.load.image('player', 'characters/player.png')
 
     // Tilemaps
     this.load.tilemapTiledJSON('sample', 'tilemap/sample.json')
@@ -50,6 +50,13 @@ export default class Preload extends Phaser.Scene {
     )
 
     this.load.image('sawblade', 'projectiles/sawblade.png')
+
+    // Player
+    this.load.aseprite({
+      key: 'player',
+      atlasURL: 'characters/player.json',
+      textureURL: 'characters/player.png',
+    })
   }
 
   create() {

@@ -57,10 +57,12 @@ export class InputController {
     if (!this.player.isDashing && !this.player.isDead) {
       const sprite = this.player.sprite
       if (this.keyLeft.isDown) {
-        sprite.setFlipX(false)
+        sprite.play('run', true)
+        sprite.setFlipX(true)
         sprite.setVelocityX(-this.speed)
       } else if (this.keyRight.isDown) {
-        sprite.setFlipX(true)
+        sprite.play('run', true)
+        sprite.setFlipX(false)
         sprite.setVelocityX(this.speed)
       } else {
         sprite.setVelocityX(0)

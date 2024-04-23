@@ -191,9 +191,12 @@ export class Player {
 
   attack() {
     if (!this.isAttacking) {
+      this.sprite.play('attack')
       this.isAttacking = true
-      this.animQueue = ['slash-horizontal', 'slash-vertical']
-      this.playNextAnimation()
+      setTimeout(() => {
+        this.animQueue = ['slash-horizontal', 'slash-vertical']
+        this.playNextAnimation()
+      }, 300)
     }
   }
 
@@ -240,13 +243,13 @@ export class Player {
   getDashEndX() {
     const sprite = this.sprite
     const dashDistance = sprite.flipX
-      ? Player.DASH_DISTANCE
-      : -Player.DASH_DISTANCE
+      ? -Player.DASH_DISTANCE
+      : Player.DASH_DISTANCE
     const endX = sprite.x + dashDistance
     const platformLayer = this.game.map.getLayer('Platforms')!
 
     // There's probably a more efficient way to check platform edges but I'm lazy and it works
-    if (sprite.flipX) {
+    if (!sprite.flipX) {
       for (let x = sprite.x; x < endX; x++) {
         const tile = platformLayer.tilemapLayer.getTileAtWorldXY(x, sprite.y)
         if (tile) {
@@ -321,6 +324,7 @@ export class Player {
     }
     if (this.isGrounded()) {
       this.sprite.setVelocityY(-Player.JUMP_VELOCITY)
+      this.sprite.play('jump')
     } else {
       if (!this.doubleJumpOnCooldown) {
         this.doubleJumpOnCooldown = true
@@ -342,15 +346,15 @@ export class Player {
     const attackSprite = this.attackAnimMap[animKey]
     const facingRight = this.sprite.flipX
     if (facingRight) {
-      attackSprite.setFlipX(false)
-      attackSprite.setPosition(
-        this.sprite.x + this.sprite.displayWidth / 2 + 25,
-        this.sprite.y - 25
-      )
-    } else {
       attackSprite.setFlipX(true)
       attackSprite.setPosition(
         this.sprite.x - (this.sprite.displayWidth / 2 + 25),
+        this.sprite.y - 25
+      )
+    } else {
+      attackSprite.setFlipX(false)
+      attackSprite.setPosition(
+        this.sprite.x + this.sprite.displayWidth / 2 + 25,
         this.sprite.y - 25
       )
     }

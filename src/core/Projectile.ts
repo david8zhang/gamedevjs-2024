@@ -28,7 +28,7 @@ export class Projectile {
       .setSensor(true)
       .setCollisionCategory(CollisionCategory.PROJECTILE)
       .setCollidesWith([CollisionCategory.ENEMY, CollisionCategory.BOUNDS])
-      .setVelocityX(config.flipX ? 20 : -20)
+      .setVelocityX(config.flipX ? -20 : 20)
       .setAngularVelocity(10)
       .setScale(2)
 

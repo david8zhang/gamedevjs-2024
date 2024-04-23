@@ -50,7 +50,8 @@ export class UI extends Phaser.Scene {
     graphics.fillStyle(0x000000, 0.5)
     graphics.fillRoundedRect(
       Constants.WINDOW_WIDTH / 2 - 150,
-      Constants.WINDOW_HEIGHT - 65,
+      0,
+      // Constants.WINDOW_HEIGHT - 65,
       300,
       50,
       5
@@ -58,7 +59,8 @@ export class UI extends Phaser.Scene {
 
     this.healthbar = new UIValueBar(this, {
       x: Constants.WINDOW_WIDTH / 2 - 100,
-      y: Constants.WINDOW_HEIGHT - 50,
+      y: 16,
+      // y: Constants.WINDOW_HEIGHT - 50,
       width: 235,
       height: 20,
       maxValue: 100,
