@@ -314,8 +314,14 @@ export class Player {
   }
 
   isGrounded() {
-    const velocity = this.sprite.getVelocity()
-    return Math.abs(velocity.y!) <= 0.0001
+    const floorBodies = this.game.matter.world
+      .getAllBodies()
+      .filter((b) => b.label === CollisionLabel.FLOOR)
+    const collisionData = this.game.matter.intersectBody(
+      this.mainBody,
+      floorBodies
+    )
+    return collisionData.length > 0
   }
 
   jump() {
