@@ -5,11 +5,14 @@ import StateMachine, { IState } from './StateMachine'
 
 export default class JumpState implements IState {
   public name: string = 'JumpState'
+  private MAX_FALL_VELOCITY = 9
 
   private keyRight!: Phaser.Input.Keyboard.Key
   private keyLeft!: Phaser.Input.Keyboard.Key
   private player: Player
   private stateMachine: StateMachine
+
+  private jumpBuffer: boolean = false // allow jump input before landing
 
   constructor(player: Player, stateMachine: StateMachine) {
     this.player = player
@@ -28,28 +31,39 @@ export default class JumpState implements IState {
     }
   }
 
-  onUpdate(_dt: number): void {
+  onUpdate(dt: number): void {
     const vy = this.player.sprite.getVelocity().y ?? 0
+    const sprite = this.player.sprite
+
     if (this.player.isGrounded() && vy >= 0) {
-      if (this.player.sprite.getVelocity().x !== 0) {
+      if (this.jumpBuffer) {
+        sprite.setVelocityY(-Player.JUMP_VELOCITY)
+        this.jumpBuffer = false
+      } else if (sprite.getVelocity().x !== 0) {
         this.stateMachine.setState('MoveState')
       } else {
         this.stateMachine.setState('IdleState')
       }
     }
     if (vy < 0) {
-      this.player.sprite.play('jump', true)
+      sprite.play('jump', true)
     } else if (vy > 0) {
-      this.player.sprite.play('fall', true)
+      sprite.play('fall', true)
+      sprite.setVelocityY(vy + 0.02 * dt)
     }
     // allow movement in the air
-    const sprite = this.player.sprite
     if (this.keyLeft.isDown) {
       sprite.setFlipX(true)
       sprite.setVelocityX(-Player.SPEED)
     } else if (this.keyRight.isDown) {
       sprite.setFlipX(false)
       sprite.setVelocityX(Player.SPEED)
+    } else {
+      sprite.setVelocityX(0)
+    }
+
+    if (vy > this.MAX_FALL_VELOCITY) {
+      sprite.setVelocityY(this.MAX_FALL_VELOCITY)
     }
   }
 
@@ -68,6 +82,11 @@ export default class JumpState implements IState {
               this.player.doubleJumpOnCooldown = false
             }
           )
+        } else {
+          this.jumpBuffer = true
+          setTimeout(() => {
+            this.jumpBuffer = false
+          }, 100)
         }
         break
       }
