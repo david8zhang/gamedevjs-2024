@@ -5,6 +5,8 @@ import { Projectile } from '../Projectile'
 import StateMachine, { IState } from './StateMachine'
 
 export default class ProjectileState implements IState {
+  private static PROJECTILE_COOLDOWN_MS = 1000
+
   public name: string = 'ProjectileState'
 
   private player: Player
@@ -26,8 +28,8 @@ export default class ProjectileState implements IState {
         flipX: this.player.sprite.flipX,
       })
 
-      this.player.startCooldownEvent(
-        Player.PROJECTILE_COOLDOWN_MS,
+      Player.startCooldownEvent(
+        ProjectileState.PROJECTILE_COOLDOWN_MS,
         UI.instance.throwingStarIcon,
         () => {
           this.player.projectileCooldown = false
@@ -46,5 +48,5 @@ export default class ProjectileState implements IState {
 
   onExit(): void {}
 
-  handleInput(e: Phaser.Input.Keyboard.Key): void {}
+  handleInput(_e: Phaser.Input.Keyboard.Key): void {}
 }

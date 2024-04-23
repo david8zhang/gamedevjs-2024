@@ -58,7 +58,7 @@ export default class JumpState implements IState {
         if (!this.player.isGrounded() && !this.player.doubleJumpOnCooldown) {
           this.player.doubleJumpOnCooldown = true
           this.player.sprite.setVelocityY(-Player.JUMP_VELOCITY)
-          this.player.startCooldownEvent(
+          Player.startCooldownEvent(
             Player.DOUBLE_JUMP_COOLDOWN_MS,
             UI.instance.jumpIcon,
             () => {
@@ -69,7 +69,9 @@ export default class JumpState implements IState {
         break
       }
       case Phaser.Input.Keyboard.KeyCodes.S: {
-        this.stateMachine.setState('DashState')
+        if (!this.player.dashOnCooldown) {
+          this.stateMachine.setState('DashState')
+        }
         break
       }
       case Phaser.Input.Keyboard.KeyCodes.F: {

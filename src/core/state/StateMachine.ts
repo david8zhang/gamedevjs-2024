@@ -61,4 +61,8 @@ export default class StateMachine {
       this.currentState.handleInput(input)
     }
   }
+
+  getState(name: string): IState | undefined {
+    return this.states.get(name)
+  }
 }

@@ -5,11 +5,9 @@ import {
   CollisionLabel,
   Constants,
 } from '../utils/Constants'
-import { InputController } from './InputController'
 import { UI } from '../scenes/UI'
 import { UINumber } from './ui/UINumber'
 import { AttackSprite } from './AttackSprite'
-import { Projectile } from './Projectile'
 import { ActionIcon } from './ui/ActionIcon'
 import StateMachine from './state/StateMachine'
 import IdleState from './state/IdleState'
@@ -24,36 +22,27 @@ export class Player {
     x: 50,
     y: Constants.GAME_HEIGHT - 40,
   }
-  private static DASH_DISTANCE = 150
   public static JUMP_VELOCITY = 10
   public static SPEED = 3
   public static DAMAGE = 5
   public static PROJECTILE_DAMAGE = 5
 
   public static DOUBLE_JUMP_COOLDOWN_MS = 2000
-  public static DASH_COOLDOWN_MS = 4000
-  public static PROJECTILE_COOLDOWN_MS = 1000
 
   private game: Game
 
   public sprite: Phaser.Physics.Matter.Sprite
   public mainBody!: BodyType
   public enemyDetector!: Phaser.Physics.Matter.Sprite
-  public inputController!: InputController
   public attackAnimMap: { [key: string]: AttackSprite } = {}
   public isInvincible: boolean = false
   public isAttacking: boolean = false
   public isDead: boolean = false
   public animQueue: string[] = []
 
-  // Dash
-  public isDashing: boolean = false
-  public dashOnCooldown: boolean = false
-
   // Jump
   public doubleJumpOnCooldown: boolean = false
-
-  // Projectile
+  public dashOnCooldown: boolean = false
   public projectileCooldown: boolean = false
 
   private stateMachine: StateMachine
@@ -65,13 +54,6 @@ export class Player {
     // Setup body & sensors
     this.setupGroundSensor()
     this.setupEnemySensor()
-
-    this.inputController = new InputController(this.game, {
-      player: this,
-      speed: Player.SPEED,
-      jumpVelocity: Player.JUMP_VELOCITY,
-      dashDistance: Player.DASH_DISTANCE,
-    })
 
     this.game.events.on('update', () => {
       if (this.sprite.active) {
@@ -223,13 +205,13 @@ export class Player {
     }
   }
 
-  startCooldownEvent(
+  static startCooldownEvent(
     cooldownTime: number,
     skillIcon: ActionIcon,
     onComplete: () => void
   ) {
     const refreshInterval = 125
-    const cooldownEvent = this.game.time.addEvent({
+    const cooldownEvent = Game.instance.time.addEvent({
       delay: refreshInterval,
       repeat: cooldownTime / refreshInterval,
       callback: () => {
@@ -242,62 +224,6 @@ export class Player {
     skillIcon.updateCooldownOverlay(1 - cooldownEvent.getOverallProgress())
   }
 
-  throwProjectile() {
-    if (!this.projectileCooldown) {
-      this.projectileCooldown = true
-      new Projectile(this.game, {
-        position: {
-          x: this.sprite.x,
-          y: this.sprite.y,
-        },
-        flipX: this.sprite.flipX,
-      })
-
-      this.startCooldownEvent(
-        Player.PROJECTILE_COOLDOWN_MS,
-        UI.instance.throwingStarIcon,
-        () => {
-          this.projectileCooldown = false
-        }
-      )
-    }
-  }
-
-  getDashEndX() {
-    const sprite = this.sprite
-    const dashDistance = sprite.flipX
-      ? -Player.DASH_DISTANCE
-      : Player.DASH_DISTANCE
-    const endX = sprite.x + dashDistance
-    const platformLayer = this.game.map.getLayer('Platforms')!
-
-    // There's probably a more efficient way to check platform edges but I'm lazy and it works
-    if (!sprite.flipX) {
-      for (let x = sprite.x; x < endX; x++) {
-        const tile = platformLayer.tilemapLayer.getTileAtWorldXY(x, sprite.y)
-        if (tile) {
-          return tile.getLeft()
-        }
-      }
-    } else {
-      for (let x = sprite.x; x > endX; x--) {
-        const tile = platformLayer.tilemapLayer.getTileAtWorldXY(x, sprite.y)
-        if (tile) {
-          return tile.getRight()
-        }
-      }
-    }
-    return Math.min(
-      Constants.GAME_WIDTH - this.sprite.displayWidth / 2,
-      Math.max(0, endX)
-    )
-  }
-
-  dash() {
-    if (!this.dashOnCooldown && !this.isDead) {
-    }
-  }
-
   isGrounded() {
     const floorBodies = this.game.matter.world
       .getAllBodies()
@@ -307,29 +233,6 @@ export class Player {
       floorBodies
     )
     return collisionData.length > 0
-  }
-
-  jump() {
-    if (this.isDead) {
-      return
-    }
-    if (this.isGrounded()) {
-      this.sprite.setVelocityY(-Player.JUMP_VELOCITY)
-      this.sprite.play('jump')
-    } else {
-      if (!this.doubleJumpOnCooldown) {
-        this.doubleJumpOnCooldown = true
-        this.sprite.setVelocityY(-Player.JUMP_VELOCITY)
-
-        this.startCooldownEvent(
-          Player.DOUBLE_JUMP_COOLDOWN_MS,
-          UI.instance.jumpIcon,
-          () => {
-            this.doubleJumpOnCooldown = false
-          }
-        )
-      }
-    }
   }
 
   playNextAnimation() {
@@ -411,7 +314,7 @@ export class Player {
     })
   }
 
-  update(t: number, dt: number) {
+  update(_t: number, dt: number) {
     this.stateMachine.update(dt)
   }
 }

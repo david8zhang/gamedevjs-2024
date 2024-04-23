@@ -1,5 +1,3 @@
-import Game from '../../scenes/Game'
-import { UI } from '../../scenes/UI'
 import { Player } from '../Player'
 import StateMachine, { IState } from './StateMachine'
 
@@ -21,17 +19,29 @@ export default class AttackState implements IState {
       this.player.animQueue = ['slash-horizontal', 'slash-vertical']
       this.player.playNextAnimation()
     }, 300)
+  }
 
-    if (this.player.isGrounded()) {
-      this.stateMachine.setState('IdleState')
-    } else {
-      this.stateMachine.setState('JumpState')
+  onUpdate(_dt: number): void {
+    if (this.player.isAttacking === false) {
+      if (this.player.isGrounded()) {
+        this.stateMachine.setState('IdleState')
+      } else {
+        this.stateMachine.setState('JumpState')
+      }
     }
   }
 
-  onUpdate(_dt: number): void {}
-
   onExit(): void {}
 
-  handleInput(e: Phaser.Input.Keyboard.Key): void {}
+  handleInput(e: Phaser.Input.Keyboard.Key): void {
+    switch (e.keyCode) {
+      // Can cancel attack into dash
+      case Phaser.Input.Keyboard.KeyCodes.S: {
+        if (!this.player.dashOnCooldown) {
+          this.stateMachine.setState('DashState')
+        }
+        break
+      }
+    }
+  }
 }
