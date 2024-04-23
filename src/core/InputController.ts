@@ -25,48 +25,5 @@ export class InputController {
     )
     this.player = config.player
     this.speed = config.speed
-    this.game.input.keyboard!.on(
-      Phaser.Input.Keyboard.Events.ANY_KEY_DOWN,
-      (e: Phaser.Input.Keyboard.Key) => {
-        switch (e.keyCode) {
-          case Phaser.Input.Keyboard.KeyCodes.SPACE: {
-            this.player.jump()
-            break
-          }
-          case Phaser.Input.Keyboard.KeyCodes.S: {
-            this.player.dash()
-            break
-          }
-          case Phaser.Input.Keyboard.KeyCodes.F: {
-            this.player.attack()
-            break
-          }
-          case Phaser.Input.Keyboard.KeyCodes.D: {
-            this.player.throwProjectile()
-            break
-          }
-          default:
-            return
-        }
-      }
-    )
-    this.game.events.on('update', this.update, this)
-  }
-
-  update() {
-    if (!this.player.isDashing && !this.player.isDead) {
-      const sprite = this.player.sprite
-      if (this.keyLeft.isDown) {
-        sprite.play('run', true)
-        sprite.setFlipX(true)
-        sprite.setVelocityX(-this.speed)
-      } else if (this.keyRight.isDown) {
-        sprite.play('run', true)
-        sprite.setFlipX(false)
-        sprite.setVelocityX(this.speed)
-      } else {
-        sprite.setVelocityX(0)
-      }
-    }
   }
 }

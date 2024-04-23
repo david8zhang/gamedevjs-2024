@@ -11,15 +11,22 @@ import { UINumber } from './ui/UINumber'
 import { AttackSprite } from './AttackSprite'
 import { Projectile } from './Projectile'
 import { ActionIcon } from './ui/ActionIcon'
+import StateMachine from './state/StateMachine'
+import IdleState from './state/IdleState'
+import MoveState from './state/MoveState'
+import JumpState from './state/JumpState'
+import DashState from './state/DashState'
+import AttackState from './state/AttackState'
+import ProjectileState from './state/ProjectileState'
 
 export class Player {
   private static SPAWN_POSITION = {
     x: 50,
     y: Constants.GAME_HEIGHT - 40,
   }
-  private static SPEED = 3
-  private static JUMP_VELOCITY = 10
   private static DASH_DISTANCE = 150
+  public static JUMP_VELOCITY = 10
+  public static SPEED = 3
   public static DAMAGE = 5
   public static PROJECTILE_DAMAGE = 5
 
@@ -49,6 +56,8 @@ export class Player {
   // Projectile
   public projectileCooldown: boolean = false
 
+  private stateMachine: StateMachine
+
   constructor(game: Game) {
     this.game = game
     this.sprite = this.game.matter.add.sprite(0, 0, 'player')
@@ -77,6 +86,20 @@ export class Player {
       }
     })
     this.setupAttackAnimMap()
+    this.stateMachine = new StateMachine()
+    this.stateMachine.addState(new IdleState(this, this.stateMachine))
+    this.stateMachine.addState(new MoveState(this, this.stateMachine))
+    this.stateMachine.addState(new JumpState(this, this.stateMachine))
+    this.stateMachine.addState(new DashState(this, this.stateMachine))
+    this.stateMachine.addState(new AttackState(this, this.stateMachine))
+    this.stateMachine.addState(new ProjectileState(this, this.stateMachine))
+    this.game.input.keyboard!.on(
+      Phaser.Input.Keyboard.Events.ANY_KEY_DOWN,
+      (e: Phaser.Input.Keyboard.Key) => {
+        this.stateMachine.handleInput(e)
+      }
+    )
+    this.stateMachine.setState('IdleState')
   }
 
   setupGroundSensor() {
@@ -272,44 +295,6 @@ export class Player {
 
   dash() {
     if (!this.dashOnCooldown && !this.isDead) {
-      this.animQueue = ['dash-strike']
-      this.playNextAnimation()
-      this.sprite.setStatic(true)
-      const sprite = this.sprite
-      const endX = this.getDashEndX()
-
-      const dashSpeed = 0.75
-      const duration = Math.abs(sprite.x - endX) / dashSpeed
-      this.dashOnCooldown = true
-      this.game.tweens.add({
-        targets: [sprite],
-        onStart: () => {
-          sprite.setTint(0x0000ff)
-          this.isInvincible = true
-          this.isDashing = true
-        },
-        onComplete: () => {
-          sprite.clearTint()
-          this.game.time.delayedCall(500, () => {
-            this.isInvincible = false
-          })
-          this.isDashing = false
-          this.sprite.setStatic(false)
-        },
-        x: {
-          from: sprite.x,
-          to: endX,
-        },
-        ease: Phaser.Math.Easing.Sine.InOut,
-        duration: duration,
-      })
-      this.startCooldownEvent(
-        Player.DASH_COOLDOWN_MS,
-        UI.instance.dashIcon,
-        () => {
-          this.dashOnCooldown = false
-        }
-      )
     }
   }
 
@@ -424,5 +409,9 @@ export class Player {
         UI.instance.gameOverModal.show()
       },
     })
+  }
+
+  update(t: number, dt: number) {
+    this.stateMachine.update(dt)
   }
 }
