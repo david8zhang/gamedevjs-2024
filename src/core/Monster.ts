@@ -21,6 +21,7 @@ export class Monster {
   private static HEALTH = 20
   private static WALK_SPEED = 1.5
   private static TOUCH_DAMAGE = 5
+  public static onMonsterDied: Array<() => void> = []
 
   private currWalkDirection: WalkDirections
   private isTurning: boolean = false
@@ -182,6 +183,7 @@ export class Monster {
       onComplete: () => {
         this.sprite.destroy()
         this.healthbar.destroy()
+        Monster.onMonsterDied.forEach((callback) => callback())
       },
     })
   }

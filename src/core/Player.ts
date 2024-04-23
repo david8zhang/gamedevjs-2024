@@ -5,19 +5,21 @@ import {
   CollisionLabel,
   Constants,
 } from '../utils/Constants'
-import { InputController } from './InputController'
+// import { InputController } from './InputController'
 import { UI } from '../scenes/UI'
 import { UINumber } from './ui/UINumber'
 import { AttackSprite } from './AttackSprite'
+import { Monster } from './Monster'
+import StateMachine from '../utils/StateMachine'
 
 export class Player {
   private static SPAWN_POSITION = {
     x: 50,
     y: Constants.GAME_HEIGHT - 40,
   }
-  private static SPEED = 5
-  private static JUMP_VELOCITY = 12
+  private static JUMP_VELOCITY = 10
   private static DASH_DISTANCE = 150
+  public static SPEED = 3
   public static DAMAGE = 5
 
   private game: Game
@@ -25,12 +27,14 @@ export class Player {
   public sprite: Phaser.Physics.Matter.Sprite
   public mainBody!: BodyType
   public enemyDetector!: Phaser.Physics.Matter.Sprite
-  public inputController!: InputController
+  // public inputController!: InputController
   public attackAnimMap: { [key: string]: AttackSprite } = {}
   public isInvincible: boolean = false
   public isAttacking: boolean = false
   public isDead: boolean = false
   public animQueue: string[] = []
+  private keyRight!: Phaser.Input.Keyboard.Key
+  private keyLeft!: Phaser.Input.Keyboard.Key
 
   // Dash
   public isDashing: boolean = false
@@ -38,6 +42,9 @@ export class Player {
 
   // Jump
   public doubleJumpOnCooldown: boolean = false
+
+  private stateMachine!: StateMachine
+  private xp: number = 0
 
   constructor(game: Game) {
     this.game = game
@@ -47,12 +54,18 @@ export class Player {
     this.setupGroundSensor()
     this.setupEnemySensor()
 
-    this.inputController = new InputController(this.game, {
-      player: this,
-      speed: Player.SPEED,
-      jumpVelocity: Player.JUMP_VELOCITY,
-      dashDistance: Player.DASH_DISTANCE,
-    })
+    // this.inputController = new InputController(this.game, {
+    //   player: this,
+    //   speed: Player.SPEED,
+    //   jumpVelocity: Player.JUMP_VELOCITY,
+    //   dashDistance: Player.DASH_DISTANCE,
+    // })
+    this.keyRight = this.game.input.keyboard!.addKey(
+      Phaser.Input.Keyboard.KeyCodes.RIGHT
+    )
+    this.keyLeft = this.game.input.keyboard!.addKey(
+      Phaser.Input.Keyboard.KeyCodes.LEFT
+    )
 
     this.game.events.on('update', () => {
       if (this.sprite.active) {
@@ -67,6 +80,120 @@ export class Player {
       }
     })
     this.setupAttackAnimMap()
+    Monster.onMonsterDied.push(() => {
+      console.log('Monster died')
+      this.xp += 10
+    })
+
+    this.setupStateMachine()
+  }
+
+  setupStateMachine() {
+    this.stateMachine = new StateMachine(this)
+    this.stateMachine
+      .addState({
+        name: 'grounded',
+        onUpdate: () => {
+          const sprite = this.sprite
+          if (this.keyLeft.isDown) {
+            sprite.setFlipX(false)
+            sprite.setVelocityX(-Player.SPEED)
+          } else if (this.keyRight.isDown) {
+            sprite.setFlipX(true)
+            sprite.setVelocityX(Player.SPEED)
+          } else {
+            sprite.setVelocityX(0)
+          }
+        },
+        handleInput: (e: Phaser.Input.Keyboard.Key) => {
+          switch (e.keyCode) {
+            case Phaser.Input.Keyboard.KeyCodes.SPACE: {
+              this.stateMachine.setState('jump')
+              break
+            }
+            case Phaser.Input.Keyboard.KeyCodes.S: {
+              this.stateMachine.setState('dash')
+              break
+            }
+            case Phaser.Input.Keyboard.KeyCodes.F: {
+              this.stateMachine.setState('attack')
+              break
+            }
+          }
+        },
+      })
+      .addState({
+        name: 'jump',
+        onEnter: this.jumpOnEnter,
+        onUpdate: () => {
+          const sprite = this.sprite
+          if (this.keyLeft.isDown) {
+            sprite.setFlipX(false)
+            sprite.setVelocityX(-Player.SPEED)
+          } else if (this.keyRight.isDown) {
+            sprite.setFlipX(true)
+            sprite.setVelocityX(Player.SPEED)
+          } else {
+            sprite.setVelocityX(0)
+          }
+          if (this.isGrounded()) {
+            this.stateMachine.setState('grounded')
+          }
+        },
+        handleInput: (e: Phaser.Input.Keyboard.Key) => {
+          switch (e.keyCode) {
+            case Phaser.Input.Keyboard.KeyCodes.SPACE:
+              {
+                if (!this.doubleJumpOnCooldown) {
+                  this.jumpOnEnter()
+                }
+              }
+              break
+            case Phaser.Input.Keyboard.KeyCodes.S: {
+              this.stateMachine.setState('dash')
+              break
+            }
+            case Phaser.Input.Keyboard.KeyCodes.F: {
+              this.stateMachine.setState('attack')
+              break
+            }
+          }
+        },
+      })
+      .addState({
+        name: 'dash',
+        onEnter: this.dash,
+        onExit: () => {
+          this.sprite.setStatic(false)
+        },
+      })
+      .addState({
+        name: 'attack',
+        onEnter: this.attack,
+        handleInput: (e: Phaser.Input.Keyboard.Key) => {
+          switch (e.keyCode) {
+            case Phaser.Input.Keyboard.KeyCodes.SPACE: {
+              this.stateMachine.setState('jump')
+              break
+            }
+            case Phaser.Input.Keyboard.KeyCodes.S: {
+              this.stateMachine.setState('dash')
+              break
+            }
+            case Phaser.Input.Keyboard.KeyCodes.F: {
+              this.stateMachine.setState('attack')
+              break
+            }
+          }
+        },
+      })
+    this.game.input.keyboard!.on(
+      Phaser.Input.Keyboard.Events.ANY_KEY_DOWN,
+      (e: Phaser.Input.Keyboard.Key) => {
+        this.stateMachine.handleInput(e)
+      }
+    )
+    this.stateMachine.setState('grounded')
   }
 
   setupGroundSensor() {
@@ -167,11 +294,9 @@ export class Player {
   }
 
   attack() {
-    if (!this.isAttacking) {
-      this.isAttacking = true
-      this.animQueue = ['slash-horizontal', 'slash-vertical']
-      this.playNextAnimation()
-    }
+    this.isAttacking = true
+    this.animQueue = ['slash-horizontal', 'slash-vertical']
+    this.playNextAnimation()
   }
 
   getDashEndX() {
@@ -205,47 +330,51 @@ export class Player {
   }
 
   dash() {
-    if (!this.dashOnCooldown && !this.isDead) {
-      const sprite = this.sprite
-      const endX = this.getDashEndX()
+    this.sprite.setStatic(true)
+    const sprite = this.sprite
+    const endX = this.getDashEndX()
 
-      const dashSpeed = 0.75
-      const duration = Math.abs(sprite.x - endX) / dashSpeed
-      this.dashOnCooldown = true
-      this.game.tweens.add({
-        targets: [sprite],
-        onStart: () => {
-          sprite.setTint(0x0000ff)
-          this.isDashing = true
-        },
-        onComplete: () => {
-          sprite.clearTint()
-          this.isDashing = false
-        },
-        x: {
-          from: sprite.x,
-          to: endX,
-        },
-        ease: Phaser.Math.Easing.Sine.InOut,
-        duration: duration,
-      })
+    const dashSpeed = 0.75
+    const duration = Math.abs(sprite.x - endX) / dashSpeed
+    this.dashOnCooldown = true
+    this.game.tweens.add({
+      targets: [sprite],
+      onStart: () => {
+        sprite.setTint(0x0000ff)
+        this.isDashing = true
+      },
+      onComplete: () => {
+        sprite.clearTint()
+        this.isDashing = false
+        if (this.isGrounded()) {
+          this.stateMachine.setState('grounded')
+        } else {
+          this.stateMachine.setState('jump')
+        }
+      },
+      x: {
+        from: sprite.x,
+        to: endX,
+      },
+      ease: Phaser.Math.Easing.Sine.InOut,
+      duration: duration,
+    })
 
-      const cooldownEvent = this.game.time.addEvent({
-        delay: 125,
-        repeat: 32,
-        callback: () => {
-          UI.instance.dashIcon.updateCooldownOverlay(
-            1 - cooldownEvent.getOverallProgress()
-          )
-          if (cooldownEvent.getOverallProgress() == 1) {
-            this.dashOnCooldown = false
-          }
-        },
-      })
-      UI.instance.dashIcon.updateCooldownOverlay(
-        1 - cooldownEvent.getOverallProgress()
-      )
-    }
+    const cooldownEvent = this.game.time.addEvent({
+      delay: 125,
+      repeat: 32,
+      callback: () => {
+        UI.instance.dashIcon.updateCooldownOverlay(
+          1 - cooldownEvent.getOverallProgress()
+        )
+        if (cooldownEvent.getOverallProgress() == 1) {
+          this.dashOnCooldown = false
+        }
+      },
+    })
+    UI.instance.dashIcon.updateCooldownOverlay(
+      1 - cooldownEvent.getOverallProgress()
+    )
   }
 
   isGrounded() {
@@ -253,10 +382,10 @@ export class Player {
     return Math.abs(velocity.y!) <= 0.0001
   }
 
-  jump() {
-    if (this.isDead) {
-      return
-    }
+  jumpOnEnter() {
+    // if (this.isDead) {
+    //   return
+    // }
     if (this.isGrounded()) {
       this.sprite.setVelocityY(-Player.JUMP_VELOCITY)
     } else {
@@ -363,5 +492,9 @@ export class Player {
         UI.instance.gameOverModal.show()
       },
     })
+  }
+
+  update(_t: number, dt: number) {
+    this.stateMachine.update(dt)
   }
 }

@@ -82,6 +82,10 @@ export default class Game extends Phaser.Scene {
     this.spawnMonsters()
   }
 
+  update(t: number, dt: number) {
+    this.player.update(t, dt)
+  }
+
   spawnMonsters() {
     const spawnerLayer = this.map.tilemap.getObjectLayer('Spawner')
     if (spawnerLayer) {
