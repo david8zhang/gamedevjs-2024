@@ -6,6 +6,7 @@ export enum CollisionCategory {
   BOUNDS = 16,
   PLAYER_ENEMY_SENSOR = 32,
   ATTACK_HITBOX = 64,
+  PROJECTILE = 128,
 }
 
 export enum CollisionLabel {

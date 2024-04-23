@@ -9,6 +9,8 @@ import { InputController } from './InputController'
 import { UI } from '../scenes/UI'
 import { UINumber } from './ui/UINumber'
 import { AttackSprite } from './AttackSprite'
+import { Projectile } from './Projectile'
+import { ActionIcon } from './ui/ActionIcon'
 
 export class Player {
   private static SPAWN_POSITION = {
@@ -19,6 +21,11 @@ export class Player {
   private static JUMP_VELOCITY = 12
   private static DASH_DISTANCE = 150
   public static DAMAGE = 5
+  public static PROJECTILE_DAMAGE = 5
+
+  public static DOUBLE_JUMP_COOLDOWN_MS = 2000
+  public static DASH_COOLDOWN_MS = 4000
+  public static PROJECTILE_COOLDOWN_MS = 1000
 
   private game: Game
 
@@ -38,6 +45,9 @@ export class Player {
 
   // Jump
   public doubleJumpOnCooldown: boolean = false
+
+  // Projectile
+  public projectileCooldown: boolean = false
 
   constructor(game: Game) {
     this.game = game
@@ -152,9 +162,22 @@ export class Player {
       },
     })
 
+    const dashStrike = new AttackSprite(this.game, {
+      hitAnimKey: 'slash-vertical-hit',
+      attackAnimKey: 'dash-strike',
+      hitboxScale: {
+        width: 2,
+        height: 0.75,
+      },
+      onComplete: () => {
+        this.onAnimationComplete()
+      },
+    })
+
     this.attackAnimMap = {
       'slash-horizontal': horizontalSlash,
       'slash-vertical': verticalSlash,
+      'dash-strike': dashStrike,
     }
   }
 
@@ -171,6 +194,46 @@ export class Player {
       this.isAttacking = true
       this.animQueue = ['slash-horizontal', 'slash-vertical']
       this.playNextAnimation()
+    }
+  }
+
+  startCooldownEvent(
+    cooldownTime: number,
+    skillIcon: ActionIcon,
+    onComplete: () => void
+  ) {
+    const refreshInterval = 125
+    const cooldownEvent = this.game.time.addEvent({
+      delay: refreshInterval,
+      repeat: cooldownTime / refreshInterval,
+      callback: () => {
+        skillIcon.updateCooldownOverlay(1 - cooldownEvent.getOverallProgress())
+        if (cooldownEvent.getOverallProgress() == 1) {
+          onComplete()
+        }
+      },
+    })
+    skillIcon.updateCooldownOverlay(1 - cooldownEvent.getOverallProgress())
+  }
+
+  throwProjectile() {
+    if (!this.projectileCooldown) {
+      this.projectileCooldown = true
+      new Projectile(this.game, {
+        position: {
+          x: this.sprite.x,
+          y: this.sprite.y,
+        },
+        flipX: this.sprite.flipX,
+      })
+
+      this.startCooldownEvent(
+        Player.PROJECTILE_COOLDOWN_MS,
+        UI.instance.throwingStarIcon,
+        () => {
+          this.projectileCooldown = false
+        }
+      )
     }
   }
 
@@ -206,6 +269,9 @@ export class Player {
 
   dash() {
     if (!this.dashOnCooldown && !this.isDead) {
+      this.animQueue = ['dash-strike']
+      this.playNextAnimation()
+
       const sprite = this.sprite
       const endX = this.getDashEndX()
 
@@ -216,10 +282,14 @@ export class Player {
         targets: [sprite],
         onStart: () => {
           sprite.setTint(0x0000ff)
+          this.isInvincible = true
           this.isDashing = true
         },
         onComplete: () => {
           sprite.clearTint()
+          this.game.time.delayedCall(500, () => {
+            this.isInvincible = false
+          })
           this.isDashing = false
         },
         x: {
@@ -229,21 +299,12 @@ export class Player {
         ease: Phaser.Math.Easing.Sine.InOut,
         duration: duration,
       })
-
-      const cooldownEvent = this.game.time.addEvent({
-        delay: 125,
-        repeat: 32,
-        callback: () => {
-          UI.instance.dashIcon.updateCooldownOverlay(
-            1 - cooldownEvent.getOverallProgress()
-          )
-          if (cooldownEvent.getOverallProgress() == 1) {
-            this.dashOnCooldown = false
-          }
-        },
-      })
-      UI.instance.dashIcon.updateCooldownOverlay(
-        1 - cooldownEvent.getOverallProgress()
+      this.startCooldownEvent(
+        Player.DASH_COOLDOWN_MS,
+        UI.instance.dashIcon,
+        () => {
+          this.dashOnCooldown = false
+        }
       )
     }
   }
@@ -263,25 +324,14 @@ export class Player {
       if (!this.doubleJumpOnCooldown) {
         this.doubleJumpOnCooldown = true
         this.sprite.setVelocityY(-Player.JUMP_VELOCITY)
-        const cooldownEvent = this.game.time.addEvent({
-          delay: 125,
-          repeat: 16,
-          callback: () => {
-            if (UI.instance.jumpIcon) {
-              UI.instance.jumpIcon.updateCooldownOverlay(
-                1 - cooldownEvent.getOverallProgress()
-              )
-            }
-            if (cooldownEvent.getOverallProgress() == 1) {
-              this.doubleJumpOnCooldown = false
-            }
-          },
-        })
-        if (UI.instance.jumpIcon) {
-          UI.instance.jumpIcon.updateCooldownOverlay(
-            1 - cooldownEvent.getOverallProgress()
-          )
-        }
+
+        this.startCooldownEvent(
+          Player.DOUBLE_JUMP_COOLDOWN_MS,
+          UI.instance.jumpIcon,
+          () => {
+            this.doubleJumpOnCooldown = false
+          }
+        )
       }
     }
   }

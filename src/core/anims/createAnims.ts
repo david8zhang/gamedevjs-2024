@@ -42,4 +42,15 @@ export const createAnims = (anims: Phaser.Animations.AnimationManager) => {
     repeat: 0,
     frameRate: 15,
   })
+
+  anims.create({
+    key: 'dash-strike',
+    frames: anims.generateFrameNames('dash-strike', {
+      start: 0,
+      end: 5,
+      suffix: '.png',
+    }),
+    repeat: 0,
+    frameRate: 15,
+  })
 }
