@@ -46,6 +46,7 @@ export class Monster {
         CollisionCategory.BOUNDS,
         CollisionCategory.PLAYER_ENEMY_SENSOR,
         CollisionCategory.ATTACK_HITBOX,
+        CollisionCategory.PROJECTILE,
       ])
       .setBounce(0)
       .setAlpha(0)

@@ -39,6 +39,11 @@ export class InputController {
           }
           case Phaser.Input.Keyboard.KeyCodes.F: {
             this.player.attack()
+            break
+          }
+          case Phaser.Input.Keyboard.KeyCodes.D: {
+            this.player.throwProjectile()
+            break
           }
           default:
             return

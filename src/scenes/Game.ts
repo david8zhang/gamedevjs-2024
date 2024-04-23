@@ -67,13 +67,13 @@ export default class Game extends Phaser.Scene {
         '',
         undefined,
         {
-          label: CollisionLabel.BOUNDS,
+          label: CollisionLabel.FLOOR,
         }
       )
       .setDisplaySize(Constants.GAME_WIDTH, 1)
       .setVisible(false)
       .setStatic(true)
-      .setCollisionCategory(CollisionCategory.BOUNDS)
+      .setCollisionCategory(CollisionCategory.FLOOR)
 
     this.matter.world.setBodyRenderStyle(leftWall.body as BodyType, 0xff0000)
     this.matter.world.setBodyRenderStyle(rightWall.body as BodyType, 0xff0000)
