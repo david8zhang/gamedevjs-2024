@@ -19,7 +19,7 @@ export interface MonsterConfig {
 export class Monster {
   private game: Game
   private static HEALTH = 20
-  private static WALK_SPEED = 1.5
+  private static WALK_SPEED = 0.5
   private static TOUCH_DAMAGE = 5
 
   private currWalkDirection: WalkDirections

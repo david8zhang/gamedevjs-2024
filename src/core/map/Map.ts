@@ -205,7 +205,9 @@ export class Map {
           .sprite(
             tile.pixelX + tile.width / 2,
             tile.pixelY + tile.height / 2,
-            ''
+            '',
+            undefined,
+            { label: CollisionLabel.FLOOR }
           )
           .setVisible(false)
           .setDisplaySize(tile.width, tile.height)

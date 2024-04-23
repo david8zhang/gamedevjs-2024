@@ -7,7 +7,7 @@ export const createAnims = (anims: Phaser.Animations.AnimationManager) => {
       suffix: '.png',
     }),
     repeat: 0,
-    frameRate: 12,
+    frameRate: 15,
   })
 
   anims.create({
@@ -18,7 +18,7 @@ export const createAnims = (anims: Phaser.Animations.AnimationManager) => {
       suffix: '.png',
     }),
     repeat: 0,
-    frameRate: 12,
+    frameRate: 15,
   })
 
   anims.create({
@@ -29,7 +29,7 @@ export const createAnims = (anims: Phaser.Animations.AnimationManager) => {
       suffix: '.png',
     }),
     repeat: 0,
-    frameRate: 15,
+    frameRate: 30,
   })
 
   anims.create({
@@ -40,7 +40,7 @@ export const createAnims = (anims: Phaser.Animations.AnimationManager) => {
       suffix: '.png',
     }),
     repeat: 0,
-    frameRate: 15,
+    frameRate: 30,
   })
 
   anims.create({
@@ -53,4 +53,6 @@ export const createAnims = (anims: Phaser.Animations.AnimationManager) => {
     repeat: 0,
     frameRate: 15,
   })
+
+  anims.createFromAseprite('player')
 }

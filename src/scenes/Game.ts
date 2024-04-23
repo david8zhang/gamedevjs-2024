@@ -97,4 +97,8 @@ export default class Game extends Phaser.Scene {
       })
     }
   }
+
+  update(t: number, dt: number) {
+    this.player.update(t, dt)
+  }
 }

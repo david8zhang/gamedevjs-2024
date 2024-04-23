@@ -5,49 +5,47 @@ import {
   CollisionLabel,
   Constants,
 } from '../utils/Constants'
-import { InputController } from './InputController'
 import { UI } from '../scenes/UI'
 import { UINumber } from './ui/UINumber'
 import { AttackSprite } from './AttackSprite'
-import { Projectile } from './Projectile'
 import { ActionIcon } from './ui/ActionIcon'
+import StateMachine from './state/StateMachine'
+import IdleState from './state/IdleState'
+import MoveState from './state/MoveState'
+import JumpState from './state/JumpState'
+import DashState from './state/DashState'
+import AttackState from './state/AttackState'
+import ProjectileState from './state/ProjectileState'
 
 export class Player {
   private static SPAWN_POSITION = {
     x: 50,
     y: Constants.GAME_HEIGHT - 40,
   }
-  private static SPEED = 5
-  private static JUMP_VELOCITY = 12
-  private static DASH_DISTANCE = 150
+  public static JUMP_VELOCITY = 10
+  public static SPEED = 3
   public static DAMAGE = 5
   public static PROJECTILE_DAMAGE = 5
 
   public static DOUBLE_JUMP_COOLDOWN_MS = 2000
-  public static DASH_COOLDOWN_MS = 4000
-  public static PROJECTILE_COOLDOWN_MS = 1000
 
   private game: Game
 
   public sprite: Phaser.Physics.Matter.Sprite
   public mainBody!: BodyType
   public enemyDetector!: Phaser.Physics.Matter.Sprite
-  public inputController!: InputController
   public attackAnimMap: { [key: string]: AttackSprite } = {}
   public isInvincible: boolean = false
   public isAttacking: boolean = false
   public isDead: boolean = false
   public animQueue: string[] = []
 
-  // Dash
-  public isDashing: boolean = false
-  public dashOnCooldown: boolean = false
-
   // Jump
   public doubleJumpOnCooldown: boolean = false
-
-  // Projectile
+  public dashOnCooldown: boolean = false
   public projectileCooldown: boolean = false
+
+  private stateMachine: StateMachine
 
   constructor(game: Game) {
     this.game = game
@@ -56,13 +54,6 @@ export class Player {
     // Setup body & sensors
     this.setupGroundSensor()
     this.setupEnemySensor()
-
-    this.inputController = new InputController(this.game, {
-      player: this,
-      speed: Player.SPEED,
-      jumpVelocity: Player.JUMP_VELOCITY,
-      dashDistance: Player.DASH_DISTANCE,
-    })
 
     this.game.events.on('update', () => {
       if (this.sprite.active) {
@@ -77,6 +68,20 @@ export class Player {
       }
     })
     this.setupAttackAnimMap()
+    this.stateMachine = new StateMachine()
+    this.stateMachine.addState(new IdleState(this, this.stateMachine))
+    this.stateMachine.addState(new MoveState(this, this.stateMachine))
+    this.stateMachine.addState(new JumpState(this, this.stateMachine))
+    this.stateMachine.addState(new DashState(this, this.stateMachine))
+    this.stateMachine.addState(new AttackState(this, this.stateMachine))
+    this.stateMachine.addState(new ProjectileState(this, this.stateMachine))
+    this.game.input.keyboard!.on(
+      Phaser.Input.Keyboard.Events.ANY_KEY_DOWN,
+      (e: Phaser.Input.Keyboard.Key) => {
+        this.stateMachine.handleInput(e)
+      }
+    )
+    this.stateMachine.setState('IdleState')
   }
 
   setupGroundSensor() {
@@ -191,19 +196,22 @@ export class Player {
 
   attack() {
     if (!this.isAttacking) {
+      this.sprite.play('attack')
       this.isAttacking = true
-      this.animQueue = ['slash-horizontal', 'slash-vertical']
-      this.playNextAnimation()
+      setTimeout(() => {
+        this.animQueue = ['slash-horizontal', 'slash-vertical']
+        this.playNextAnimation()
+      }, 300)
     }
   }
 
-  startCooldownEvent(
+  static startCooldownEvent(
     cooldownTime: number,
     skillIcon: ActionIcon,
     onComplete: () => void
   ) {
     const refreshInterval = 125
-    const cooldownEvent = this.game.time.addEvent({
+    const cooldownEvent = Game.instance.time.addEvent({
       delay: refreshInterval,
       repeat: cooldownTime / refreshInterval,
       callback: () => {
@@ -216,124 +224,15 @@ export class Player {
     skillIcon.updateCooldownOverlay(1 - cooldownEvent.getOverallProgress())
   }
 
-  throwProjectile() {
-    if (!this.projectileCooldown) {
-      this.projectileCooldown = true
-      new Projectile(this.game, {
-        position: {
-          x: this.sprite.x,
-          y: this.sprite.y,
-        },
-        flipX: this.sprite.flipX,
-      })
-
-      this.startCooldownEvent(
-        Player.PROJECTILE_COOLDOWN_MS,
-        UI.instance.throwingStarIcon,
-        () => {
-          this.projectileCooldown = false
-        }
-      )
-    }
-  }
-
-  getDashEndX() {
-    const sprite = this.sprite
-    const dashDistance = sprite.flipX
-      ? Player.DASH_DISTANCE
-      : -Player.DASH_DISTANCE
-    const endX = sprite.x + dashDistance
-    const platformLayer = this.game.map.getLayer('Platforms')!
-
-    // There's probably a more efficient way to check platform edges but I'm lazy and it works
-    if (sprite.flipX) {
-      for (let x = sprite.x; x < endX; x++) {
-        const tile = platformLayer.tilemapLayer.getTileAtWorldXY(x, sprite.y)
-        if (tile) {
-          return tile.getLeft()
-        }
-      }
-    } else {
-      for (let x = sprite.x; x > endX; x--) {
-        const tile = platformLayer.tilemapLayer.getTileAtWorldXY(x, sprite.y)
-        if (tile) {
-          return tile.getRight()
-        }
-      }
-    }
-    return Math.min(
-      Constants.GAME_WIDTH - this.sprite.displayWidth / 2,
-      Math.max(0, endX)
-    )
-  }
-
-  dash() {
-    if (!this.dashOnCooldown && !this.isDead) {
-      this.animQueue = ['dash-strike']
-      this.playNextAnimation()
-
-      const sprite = this.sprite
-      const endX = this.getDashEndX()
-
-      const dashSpeed = 0.75
-      const duration = Math.abs(sprite.x - endX) / dashSpeed
-      this.dashOnCooldown = true
-      this.game.tweens.add({
-        targets: [sprite],
-        onStart: () => {
-          sprite.setTint(0x0000ff)
-          this.isInvincible = true
-          this.isDashing = true
-        },
-        onComplete: () => {
-          sprite.clearTint()
-          this.game.time.delayedCall(500, () => {
-            this.isInvincible = false
-          })
-          this.isDashing = false
-        },
-        x: {
-          from: sprite.x,
-          to: endX,
-        },
-        ease: Phaser.Math.Easing.Sine.InOut,
-        duration: duration,
-      })
-      this.startCooldownEvent(
-        Player.DASH_COOLDOWN_MS,
-        UI.instance.dashIcon,
-        () => {
-          this.dashOnCooldown = false
-        }
-      )
-    }
-  }
-
   isGrounded() {
-    const velocity = this.sprite.getVelocity()
-    return Math.abs(velocity.y!) <= 0.0001
-  }
-
-  jump() {
-    if (this.isDead) {
-      return
-    }
-    if (this.isGrounded()) {
-      this.sprite.setVelocityY(-Player.JUMP_VELOCITY)
-    } else {
-      if (!this.doubleJumpOnCooldown) {
-        this.doubleJumpOnCooldown = true
-        this.sprite.setVelocityY(-Player.JUMP_VELOCITY)
-
-        this.startCooldownEvent(
-          Player.DOUBLE_JUMP_COOLDOWN_MS,
-          UI.instance.jumpIcon,
-          () => {
-            this.doubleJumpOnCooldown = false
-          }
-        )
-      }
-    }
+    const floorBodies = this.game.matter.world
+      .getAllBodies()
+      .filter((b) => b.label === CollisionLabel.FLOOR)
+    const collisionData = this.game.matter.intersectBody(
+      this.mainBody,
+      floorBodies
+    )
+    return collisionData.length > 0
   }
 
   playNextAnimation() {
@@ -341,15 +240,15 @@ export class Player {
     const attackSprite = this.attackAnimMap[animKey]
     const facingRight = this.sprite.flipX
     if (facingRight) {
-      attackSprite.setFlipX(false)
-      attackSprite.setPosition(
-        this.sprite.x + this.sprite.displayWidth / 2 + 25,
-        this.sprite.y - 25
-      )
-    } else {
       attackSprite.setFlipX(true)
       attackSprite.setPosition(
         this.sprite.x - (this.sprite.displayWidth / 2 + 25),
+        this.sprite.y - 25
+      )
+    } else {
+      attackSprite.setFlipX(false)
+      attackSprite.setPosition(
+        this.sprite.x + this.sprite.displayWidth / 2 + 25,
         this.sprite.y - 25
       )
     }
@@ -413,5 +312,9 @@ export class Player {
         UI.instance.gameOverModal.show()
       },
     })
+  }
+
+  update(_t: number, dt: number) {
+    this.stateMachine.update(dt)
   }
 }
