@@ -162,9 +162,22 @@ export class Player {
       },
     })
 
+    const dashStrike = new AttackSprite(this.game, {
+      hitAnimKey: 'slash-vertical-hit',
+      attackAnimKey: 'dash-strike',
+      hitboxScale: {
+        width: 2,
+        height: 0.75,
+      },
+      onComplete: () => {
+        this.onAnimationComplete()
+      },
+    })
+
     this.attackAnimMap = {
       'slash-horizontal': horizontalSlash,
       'slash-vertical': verticalSlash,
+      'dash-strike': dashStrike,
     }
   }
 
@@ -256,6 +269,9 @@ export class Player {
 
   dash() {
     if (!this.dashOnCooldown && !this.isDead) {
+      this.animQueue = ['dash-strike']
+      this.playNextAnimation()
+
       const sprite = this.sprite
       const endX = this.getDashEndX()
 
@@ -266,10 +282,14 @@ export class Player {
         targets: [sprite],
         onStart: () => {
           sprite.setTint(0x0000ff)
+          this.isInvincible = true
           this.isDashing = true
         },
         onComplete: () => {
           sprite.clearTint()
+          this.game.time.delayedCall(500, () => {
+            this.isInvincible = false
+          })
           this.isDashing = false
         },
         x: {

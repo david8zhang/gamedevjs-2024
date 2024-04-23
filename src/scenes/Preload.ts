@@ -43,6 +43,11 @@ export default class Preload extends Phaser.Scene {
       'animations/slash-horizontal-hit.png',
       'animations/slash-horizontal-hit.json'
     )
+    this.load.atlas(
+      'dash-strike',
+      'animations/dash-strike.png',
+      'animations/dash-strike.json'
+    )
 
     this.load.image('sawblade', 'projectiles/sawblade.png')
   }
