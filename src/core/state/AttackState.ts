@@ -13,12 +13,12 @@ export default class AttackState implements IState {
   }
 
   onEnter(): void {
-    this.player.sprite.play('attack')
+    this.player.sprite.play('attack2')
     this.player.isAttacking = true
     setTimeout(() => {
       this.player.animQueue = ['slash-horizontal', 'slash-vertical']
       this.player.playNextAnimation()
-    }, 300)
+    }, 100)
   }
 
   onUpdate(_dt: number): void {

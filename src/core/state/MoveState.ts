@@ -51,7 +51,9 @@ export default class MoveState implements IState {
         break
       }
       case Phaser.Input.Keyboard.KeyCodes.S: {
-        this.stateMachine.setState('DashState')
+        if (!this.player.dashOnCooldown) {
+          this.stateMachine.setState('DashState')
+        }
         break
       }
       case Phaser.Input.Keyboard.KeyCodes.F: {

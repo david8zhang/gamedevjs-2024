@@ -23,21 +23,24 @@ export default class JumpState implements IState {
   }
 
   onEnter(): void {
-    console.log(this.player.isGrounded())
     if (this.player.isGrounded()) {
       this.player.sprite.setVelocityY(-Player.JUMP_VELOCITY)
-      this.player.sprite.play('jump')
     }
   }
 
   onUpdate(_dt: number): void {
-    const vy = this.player.sprite.getVelocity().y
-    if (this.player.isGrounded() && vy != null && vy >= 0) {
+    const vy = this.player.sprite.getVelocity().y ?? 0
+    if (this.player.isGrounded() && vy >= 0) {
       if (this.player.sprite.getVelocity().x !== 0) {
         this.stateMachine.setState('MoveState')
       } else {
         this.stateMachine.setState('IdleState')
       }
+    }
+    if (vy < 0) {
+      this.player.sprite.play('jump', true)
+    } else if (vy > 0) {
+      this.player.sprite.play('fall', true)
     }
     // allow movement in the air
     const sprite = this.player.sprite
