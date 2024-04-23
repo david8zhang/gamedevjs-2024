@@ -62,6 +62,8 @@ export class InputController {
       } else if (this.keyRight.isDown) {
         sprite.setFlipX(true)
         sprite.setVelocityX(this.speed)
+      } else {
+        sprite.setVelocityX(0)
       }
     }
   }

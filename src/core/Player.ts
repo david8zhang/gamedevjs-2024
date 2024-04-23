@@ -17,8 +17,8 @@ export class Player {
     x: 50,
     y: Constants.GAME_HEIGHT - 40,
   }
-  private static SPEED = 5
-  private static JUMP_VELOCITY = 12
+  private static SPEED = 3
+  private static JUMP_VELOCITY = 10
   private static DASH_DISTANCE = 150
   public static DAMAGE = 5
   public static PROJECTILE_DAMAGE = 5
@@ -271,7 +271,7 @@ export class Player {
     if (!this.dashOnCooldown && !this.isDead) {
       this.animQueue = ['dash-strike']
       this.playNextAnimation()
-
+      this.sprite.setStatic(true)
       const sprite = this.sprite
       const endX = this.getDashEndX()
 
@@ -291,6 +291,7 @@ export class Player {
             this.isInvincible = false
           })
           this.isDashing = false
+          this.sprite.setStatic(false)
         },
         x: {
           from: sprite.x,
