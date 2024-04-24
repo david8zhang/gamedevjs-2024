@@ -40,10 +40,9 @@ export class Player {
   public isDead: boolean = false
   public animQueue: string[] = []
 
-  // Jump
-  public doubleJumpOnCooldown: boolean = false
-  public dashOnCooldown: boolean = false
-  public projectileCooldown: boolean = false
+  public doubleJumpsLeft: number = 1
+  public dashesLeft: number = 1
+  public projectilesLeft: number = 1
 
   private stateMachine: StateMachine
 

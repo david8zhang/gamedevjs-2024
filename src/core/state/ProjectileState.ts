@@ -18,8 +18,8 @@ export default class ProjectileState implements IState {
   }
 
   onEnter(): void {
-    if (!this.player.projectileCooldown) {
-      this.player.projectileCooldown = true
+    if (this.player.projectilesLeft > 0) {
+      this.player.projectilesLeft -= 1
       new Projectile(Game.instance, {
         position: {
           x: this.player.sprite.x,
@@ -32,7 +32,7 @@ export default class ProjectileState implements IState {
         ProjectileState.PROJECTILE_COOLDOWN_MS,
         UI.instance.throwingStarIcon,
         () => {
-          this.player.projectileCooldown = false
+          this.player.projectilesLeft += 1
         }
       )
     }
