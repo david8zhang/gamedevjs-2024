@@ -13,12 +13,14 @@ export default class IdleState implements IState {
   constructor(player: Player, stateMachine: StateMachine) {
     this.player = player
     this.stateMachine = stateMachine
-    this.keyRight = Game.instance.input.keyboard!.addKey(
-      Phaser.Input.Keyboard.KeyCodes.RIGHT
-    )
-    this.keyLeft = Game.instance.input.keyboard!.addKey(
-      Phaser.Input.Keyboard.KeyCodes.LEFT
-    )
+    if (Game.instance && Game.instance.input) {
+      this.keyRight = Game.instance.input.keyboard!.addKey(
+        Phaser.Input.Keyboard.KeyCodes.RIGHT
+      )
+      this.keyLeft = Game.instance.input.keyboard!.addKey(
+        Phaser.Input.Keyboard.KeyCodes.LEFT
+      )
+    }
   }
 
   onEnter(): void {
@@ -26,7 +28,7 @@ export default class IdleState implements IState {
     this.player.sprite.setFrame(0)
   }
 
-  onUpdate(dt: number): void {
+  onUpdate(): void {
     this.player.sprite.setVelocityX(0)
     if (this.keyLeft.isDown || this.keyRight.isDown) {
       this.stateMachine.setState('MoveState')

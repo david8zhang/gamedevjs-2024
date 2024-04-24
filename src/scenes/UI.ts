@@ -1,4 +1,5 @@
 import { ActionIcon } from '../core/ui/ActionIcon'
+import { ComboText } from '../core/ui/ComboText'
 import { GameOverModal } from '../core/ui/GameOverModal'
 import { UIValueBar } from '../core/ui/UIValueBar'
 import { Constants } from '../utils/Constants'
@@ -15,6 +16,7 @@ export class UI extends Phaser.Scene {
   public healthLabelText!: Phaser.GameObjects.Text
   public healthText!: Phaser.GameObjects.Text
   public gameOverModal!: GameOverModal
+  public comboText!: ComboText
 
   constructor() {
     super('ui')
@@ -88,6 +90,8 @@ export class UI extends Phaser.Scene {
       .setOrigin(0.5, 0)
 
     this.gameOverModal = new GameOverModal(this)
+
+    this.comboText = new ComboText(this)
   }
 
   decreasePlayerHealth(amount: number) {

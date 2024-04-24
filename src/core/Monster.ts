@@ -185,5 +185,6 @@ export class Monster {
         this.healthbar.destroy()
       },
     })
+    this.game.player.incrementCombo()
   }
 }

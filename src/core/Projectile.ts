@@ -49,13 +49,14 @@ export class Projectile {
         const enemyGameObject = enemyBody.gameObject
         if (enemyGameObject) {
           const enemyRef = enemyGameObject.getData('ref') as Monster
+          const flipX = this.sprite.active ? this.sprite.flipX : false
 
           // Add a bit of knockback
-          enemyRef.sprite.setVelocity(this.sprite.flipX ? -2 : 2, -2.5)
+          enemyRef.sprite.setVelocity(flipX ? -2 : 2, -2.5)
 
           // Play the hit sprite
           const hitSprite = this.game.add
-            .sprite(this.sprite.x, this.sprite.y, '')
+            .sprite(0, 0, '')
             .setVisible(false)
             .setScale(2)
             .setDepth(1000)
@@ -66,7 +67,7 @@ export class Projectile {
           hitSprite
             .setVisible(true)
             .play('slash-horizontal-hit')
-            .setFlipX(this.sprite.flipX)
+            .setFlipX(flipX)
           enemyRef.takeDamage(Player.DAMAGE)
         }
       } else if (
