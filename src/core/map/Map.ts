@@ -183,34 +183,27 @@ export class Map {
 
   initTilemap() {
     this.tilemap = this.scene.make.tilemap({
-      key: 'sample',
+      key: 'tilemap-1',
     })
     const tilesetPlatform = this.tilemap.addTilesetImage(
-      'tilemap_packed',
-      'tilemap_packed',
-      18,
-      18
+      'industrial-tileset',
+      'industrial-tileset',
+      32,
+      32
     )!
-    const tilesetBG = this.tilemap.addTilesetImage(
-      'tilemap-backgrounds_packed',
-      'tilemap-backgrounds_packed',
-      18,
-      18
-    )!
-    this.createLayer('Background', tilesetBG)
     const platformLayer = this.createLayer('Platforms', tilesetPlatform)
     platformLayer.forEachTile(
       (tile) => {
         this.scene.matter.add
           .sprite(
             tile.pixelX + tile.width / 2,
-            tile.pixelY + tile.height / 2,
+            tile.pixelY + tile.height / 4,
             '',
             undefined,
             { label: CollisionLabel.FLOOR }
           )
           .setVisible(false)
-          .setDisplaySize(tile.width, tile.height)
+          .setDisplaySize(tile.width, tile.height / 2)
           .setStatic(true)
           .setOrigin(0, 0)
           .setCollisionCategory(CollisionCategory.FLOOR)

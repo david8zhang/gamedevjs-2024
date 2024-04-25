@@ -22,6 +22,6 @@ export enum CollisionLabel {
 export class Constants {
   public static WINDOW_WIDTH = 800
   public static WINDOW_HEIGHT = 600
-  public static GAME_WIDTH = 1800
-  public static GAME_HEIGHT = 1800
+  public static GAME_WIDTH = 2400
+  public static GAME_HEIGHT = 2400
 }

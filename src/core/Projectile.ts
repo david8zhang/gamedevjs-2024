@@ -76,5 +76,14 @@ export class Projectile {
         this.sprite.destroy()
       }
     })
+
+    this.game.events.on('update', () => {
+      if (
+        this.sprite.active &&
+        !this.game.cameras.main.worldView.contains(this.sprite.x, this.sprite.y)
+      ) {
+        this.sprite.destroy()
+      }
+    })
   }
 }

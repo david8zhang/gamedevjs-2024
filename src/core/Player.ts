@@ -20,7 +20,7 @@ import ProjectileState from './state/ProjectileState'
 export class Player {
   private static SPAWN_POSITION = {
     x: 50,
-    y: Constants.GAME_HEIGHT - 40,
+    y: Constants.GAME_HEIGHT - 70,
   }
   public static JUMP_VELOCITY = 10
   public static SPEED = 3
