@@ -19,7 +19,6 @@ export default class ProjectileState implements IState {
 
   onEnter(): void {
     if (!this.player.projectileCooldown) {
-      this.player.projectileCooldown = true
       new Projectile(Game.instance, {
         position: {
           x: this.player.sprite.x,
@@ -28,13 +27,16 @@ export default class ProjectileState implements IState {
         flipX: this.player.sprite.flipX,
       })
 
-      Player.startCooldownEvent(
-        ProjectileState.PROJECTILE_COOLDOWN_MS,
-        UI.instance.throwingStarIcon,
-        () => {
-          this.player.projectileCooldown = false
-        }
-      )
+      if (!this.player.isTurboCharged) {
+        this.player.projectileCooldown = true
+        Player.startCooldownEvent(
+          ProjectileState.PROJECTILE_COOLDOWN_MS,
+          UI.instance.throwingStarIcon,
+          () => {
+            this.player.projectileCooldown = false
+          }
+        )
+      }
     }
 
     if (this.player.isGrounded()) {

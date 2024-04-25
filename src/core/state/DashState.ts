@@ -28,8 +28,6 @@ export default class DashState implements IState {
       const dashSpeed = 0.75
       const duration = Math.abs(sprite.x - endX) / dashSpeed
       sprite.play('dash')
-
-      this.player.dashOnCooldown = true
       Game.instance.tweens.add({
         targets: [sprite],
         onStart: () => {
@@ -55,13 +53,17 @@ export default class DashState implements IState {
         ease: Phaser.Math.Easing.Sine.InOut,
         duration: duration,
       })
-      Player.startCooldownEvent(
-        DashState.DASH_COOLDOWN_MS,
-        UI.instance.dashIcon,
-        () => {
-          this.player.dashOnCooldown = false
-        }
-      )
+
+      if (!this.player.isTurboCharged) {
+        this.player.dashOnCooldown = true
+        Player.startCooldownEvent(
+          DashState.DASH_COOLDOWN_MS,
+          UI.instance.dashIcon,
+          () => {
+            this.player.dashOnCooldown = false
+          }
+        )
+      }
     } else {
       this.stateMachine.setState('IdleState')
     }

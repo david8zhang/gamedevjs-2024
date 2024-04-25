@@ -70,23 +70,27 @@ export class UI extends Phaser.Scene {
       showBorder: true,
     })
 
-    this.healthLabelText = this.add.text(
-      this.healthbar.x - 35,
-      this.healthbar.y + 2,
-      'HP'
-    )
+    this.healthLabelText = this.add
+      .text(this.healthbar.x - 35, this.healthbar.y - 8, 'hp', {
+        fontSize: '20px',
+        color: 'white',
+        fontFamily: 'electric-boots',
+      })
+      .setStroke('black', 5)
 
     this.healthText = this.add
       .text(
         (this.healthbar.x + (this.healthbar.x + this.healthbar.width)) / 2,
-        this.healthbar.y + 3,
+        this.healthbar.y - 4,
         `${this.healthbar.currValue}/${this.healthbar.maxValue}`,
         {
           fontSize: '16px',
           color: 'white',
+          fontFamily: 'electric-boots',
         }
       )
       .setDepth(1000)
+      .setStroke('black', 5)
       .setOrigin(0.5, 0)
 
     this.gameOverModal = new GameOverModal(this)
@@ -96,6 +100,13 @@ export class UI extends Phaser.Scene {
 
   decreasePlayerHealth(amount: number) {
     this.healthbar.decrease(amount)
+    this.healthText.setText(
+      `${this.healthbar.currValue}/${this.healthbar.maxValue}`
+    )
+  }
+
+  increasePlayerHealth(amount: number) {
+    this.healthbar.increase(amount)
     this.healthText.setText(
       `${this.healthbar.currValue}/${this.healthbar.maxValue}`
     )

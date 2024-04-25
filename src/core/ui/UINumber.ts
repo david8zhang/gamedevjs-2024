@@ -5,11 +5,12 @@ export class UINumber {
     x: number,
     y: number,
     isDamage: boolean,
+    isTurboCharged: boolean,
     onCompleteCb?: Function
   ) {
     const text = scene.add
       .text(x, y, str, {
-        fontSize: '20px',
+        fontSize: isTurboCharged ? '22px' : '20px',
         color: 'black',
         fontFamily: 'space-comics',
       })
@@ -20,6 +21,11 @@ export class UINumber {
     if (isDamage) {
       gradient.addColorStop(0, '#7235cc')
       gradient.addColorStop(1, '#dc57d0')
+      text.setStroke('white', 5)
+    } else if (isTurboCharged) {
+      gradient.addColorStop(0, '#a22c3a')
+      gradient.addColorStop(0.5, '#ee71cd')
+      gradient.addColorStop(1, '#f98ff4')
       text.setStroke('white', 5)
     } else {
       gradient.addColorStop(0, '#ff4727')

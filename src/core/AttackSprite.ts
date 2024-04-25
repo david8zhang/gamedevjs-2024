@@ -99,7 +99,13 @@ export class AttackSprite {
                 .setVisible(true)
                 .play(this.hitAnimKey)
                 .setFlipX(this.sprite.flipX)
-              enemyRef.takeDamage(Player.DAMAGE)
+
+              const dmg =
+                Player.DAMAGE *
+                (this.game.player.isTurboCharged
+                  ? Player.TURBO_CHARGE_DMG_MULTIPLIER
+                  : 1)
+              enemyRef.takeDamage(dmg, this.game.player.isTurboCharged)
             }
           }
         }

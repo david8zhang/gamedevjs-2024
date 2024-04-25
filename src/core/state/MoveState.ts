@@ -27,15 +27,18 @@ export default class MoveState implements IState {
   }
 
   onUpdate(dt: number): void {
+    const speed =
+      Player.SPEED *
+      (this.player.isTurboCharged ? Player.TURBO_CHARGE_SPEED_MULTIPLIER : 1)
     const sprite = this.player.sprite
     if (this.keyLeft.isDown) {
       sprite.play('run', true)
       sprite.setFlipX(true)
-      sprite.setVelocityX(-Player.SPEED)
+      sprite.setVelocityX(-speed)
     } else if (this.keyRight.isDown) {
       sprite.play('run', true)
       sprite.setFlipX(false)
-      sprite.setVelocityX(Player.SPEED)
+      sprite.setVelocityX(speed)
     } else {
       sprite.setVelocityX(0)
       this.stateMachine.setState('IdleState')
