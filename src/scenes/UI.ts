@@ -1,7 +1,9 @@
 import { ActionIcon } from '../core/ui/ActionIcon'
 import { GameOverModal } from '../core/ui/GameOverModal'
+import { LevelUpMenu } from '../core/ui/LevelUpMenu'
 import { UIValueBar } from '../core/ui/UIValueBar'
 import { Constants } from '../utils/Constants'
+import Game from './Game'
 
 export class UI extends Phaser.Scene {
   public dashIcon!: ActionIcon
@@ -15,6 +17,7 @@ export class UI extends Phaser.Scene {
   public healthLabelText!: Phaser.GameObjects.Text
   public healthText!: Phaser.GameObjects.Text
   public gameOverModal!: GameOverModal
+  public levelUpMenu!: LevelUpMenu
 
   constructor() {
     super('ui')
@@ -26,22 +29,22 @@ export class UI extends Phaser.Scene {
   create() {
     this.dashIcon = new ActionIcon(this, {
       position: {
-        x: 5,
-        y: 5,
+        x: 10,
+        y: 10,
       },
       texture: 'dash',
     })
     this.jumpIcon = new ActionIcon(this, {
       position: {
-        x: 55,
-        y: 5,
+        x: 65,
+        y: 10,
       },
       texture: 'jump',
     })
     this.throwingStarIcon = new ActionIcon(this, {
       position: {
-        x: 105,
-        y: 5,
+        x: 120,
+        y: 10,
       },
       texture: 'throwing-stars',
     })
@@ -88,6 +91,18 @@ export class UI extends Phaser.Scene {
       .setOrigin(0.5, 0)
 
     this.gameOverModal = new GameOverModal(this)
+    this.levelUpMenu = new LevelUpMenu(this)
+
+    this.input.keyboard!.on(
+      Phaser.Input.Keyboard.Events.ANY_KEY_DOWN,
+      (e: Phaser.Input.Keyboard.Key) => {
+        if (e.keyCode === Phaser.Input.Keyboard.KeyCodes.L) {
+          console.log('==== TESTING LEVEL UP ===')
+          this.scene.manager.pause(Game.instance)
+          this.levelUpMenu.show()
+        }
+      }
+    )
   }
 
   decreasePlayerHealth(amount: number) {

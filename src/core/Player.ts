@@ -8,7 +8,6 @@ import {
 import { UI } from '../scenes/UI'
 import { UINumber } from './ui/UINumber'
 import { AttackSprite } from './AttackSprite'
-import { ActionIcon } from './ui/ActionIcon'
 import StateMachine from './state/StateMachine'
 import IdleState from './state/IdleState'
 import MoveState from './state/MoveState'
@@ -16,18 +15,21 @@ import JumpState from './state/JumpState'
 import DashState from './state/DashState'
 import AttackState from './state/AttackState'
 import ProjectileState from './state/ProjectileState'
+import SkillCooldown from '../utils/SkillCooldown'
 
 export class Player {
   private static SPAWN_POSITION = {
     x: 50,
     y: Constants.GAME_HEIGHT - 40,
   }
+  private static PROJECTILE_COOLDOWN_MS = 1000
+  private static DOUBLE_JUMP_COOLDOWN_MS = 2000
+  private static DASH_COOLDOWN_MS = 4000
+
   public static JUMP_VELOCITY = 10
   public static SPEED = 3
   public static DAMAGE = 5
   public static PROJECTILE_DAMAGE = 5
-
-  public static DOUBLE_JUMP_COOLDOWN_MS = 2000
 
   private game: Game
 
@@ -40,9 +42,9 @@ export class Player {
   public isDead: boolean = false
   public animQueue: string[] = []
 
-  public doubleJumpsLeft: number = 1
-  public dashesLeft: number = 1
-  public projectilesLeft: number = 1
+  public doubleJumpSkillCooldown: SkillCooldown
+  public dashSkillCooldown: SkillCooldown
+  public projectileSkillCooldown: SkillCooldown
 
   private stateMachine: StateMachine
 
@@ -67,6 +69,21 @@ export class Player {
       }
     })
     this.setupAttackAnimMap()
+
+    this.doubleJumpSkillCooldown = new SkillCooldown(
+      Player.DOUBLE_JUMP_COOLDOWN_MS,
+      'jumpIcon'
+    )
+    this.dashSkillCooldown = new SkillCooldown(
+      Player.DASH_COOLDOWN_MS,
+      'dashIcon'
+    )
+    this.projectileSkillCooldown = new SkillCooldown(
+      Player.PROJECTILE_COOLDOWN_MS,
+      'throwingStarIcon'
+    )
+
+    // Setup state machine
     this.stateMachine = new StateMachine()
     this.stateMachine.addState(new IdleState(this, this.stateMachine))
     this.stateMachine.addState(new MoveState(this, this.stateMachine))
@@ -204,25 +221,6 @@ export class Player {
     }
   }
 
-  static startCooldownEvent(
-    cooldownTime: number,
-    skillIcon: ActionIcon,
-    onComplete: () => void
-  ) {
-    const refreshInterval = 125
-    const cooldownEvent = Game.instance.time.addEvent({
-      delay: refreshInterval,
-      repeat: cooldownTime / refreshInterval,
-      callback: () => {
-        skillIcon.updateCooldownOverlay(1 - cooldownEvent.getOverallProgress())
-        if (cooldownEvent.getOverallProgress() == 1) {
-          onComplete()
-        }
-      },
-    })
-    skillIcon.updateCooldownOverlay(1 - cooldownEvent.getOverallProgress())
-  }
-
   isGrounded() {
     const floorBodies = this.game.matter.world
       .getAllBodies()
@@ -315,5 +313,8 @@ export class Player {
 
   update(_t: number, dt: number) {
     this.stateMachine.update(dt)
+    this.dashSkillCooldown.update(dt)
+    this.doubleJumpSkillCooldown.update(dt)
+    this.projectileSkillCooldown.update(dt)
   }
 }

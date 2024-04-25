@@ -1,5 +1,6 @@
 import Game from '../../scenes/Game'
 import { UI } from '../../scenes/UI'
+import SkillCooldown from '../../utils/SkillCooldown'
 import { Player } from '../Player'
 import StateMachine, { IState } from './StateMachine'
 
@@ -72,16 +73,19 @@ export default class JumpState implements IState {
   handleInput(e: Phaser.Input.Keyboard.Key): void {
     switch (e.keyCode) {
       case Phaser.Input.Keyboard.KeyCodes.SPACE: {
-        if (!this.player.isGrounded() && this.player.doubleJumpsLeft > 0) {
-          this.player.doubleJumpsLeft -= 1
+        if (
+          !this.player.isGrounded() &&
+          this.player.doubleJumpSkillCooldown.usesLeft > 0
+        ) {
+          this.player.doubleJumpSkillCooldown.usesLeft--
           this.player.sprite.setVelocityY(-Player.JUMP_VELOCITY)
-          Player.startCooldownEvent(
-            Player.DOUBLE_JUMP_COOLDOWN_MS,
-            UI.instance.jumpIcon,
-            () => {
-              this.player.doubleJumpsLeft += 1
-            }
-          )
+          // Player.startCooldownEvent(
+          //   Player.DOUBLE_JUMP_COOLDOWN_MS,
+          //   UI.instance.jumpIcon,
+          //   () => {
+          //     this.player.doubleJumpsLeft += 1
+          //   }
+          // )
         } else {
           this.jumpBuffer = true
           setTimeout(() => {
@@ -91,7 +95,7 @@ export default class JumpState implements IState {
         break
       }
       case Phaser.Input.Keyboard.KeyCodes.S: {
-        if (this.player.dashesLeft > 0) {
+        if (this.player.dashSkillCooldown.usesLeft > 0) {
           this.stateMachine.setState('DashState')
         }
         break

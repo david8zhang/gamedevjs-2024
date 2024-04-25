@@ -5,8 +5,6 @@ import { Projectile } from '../Projectile'
 import StateMachine, { IState } from './StateMachine'
 
 export default class ProjectileState implements IState {
-  private static PROJECTILE_COOLDOWN_MS = 1000
-
   public name: string = 'ProjectileState'
 
   private player: Player
@@ -18,8 +16,8 @@ export default class ProjectileState implements IState {
   }
 
   onEnter(): void {
-    if (this.player.projectilesLeft > 0) {
-      this.player.projectilesLeft -= 1
+    if (this.player.projectileSkillCooldown.usesLeft > 0) {
+      this.player.projectileSkillCooldown.usesLeft--
       new Projectile(Game.instance, {
         position: {
           x: this.player.sprite.x,
@@ -28,13 +26,13 @@ export default class ProjectileState implements IState {
         flipX: this.player.sprite.flipX,
       })
 
-      Player.startCooldownEvent(
-        ProjectileState.PROJECTILE_COOLDOWN_MS,
-        UI.instance.throwingStarIcon,
-        () => {
-          this.player.projectilesLeft += 1
-        }
-      )
+      // Player.startCooldownEvent(
+      //   ProjectileState.PROJECTILE_COOLDOWN_MS,
+      //   UI.instance.throwingStarIcon,
+      //   () => {
+      //     this.player.projectilesLeft += 1
+      //   }
+      // )
     }
 
     if (this.player.isGrounded()) {

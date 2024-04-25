@@ -5,7 +5,6 @@ import { Player } from '../Player'
 import StateMachine, { IState } from './StateMachine'
 
 export default class DashState implements IState {
-  private static DASH_COOLDOWN_MS = 4000
   private static DASH_DISTANCE = 150
 
   public name: string = 'DashState'
@@ -28,7 +27,7 @@ export default class DashState implements IState {
     const duration = Math.abs(sprite.x - endX) / dashSpeed
     sprite.play('dash')
 
-    this.player.dashesLeft -= 1
+    this.player.dashSkillCooldown.usesLeft -= 1
     Game.instance.tweens.add({
       targets: [sprite],
       onStart: () => {
@@ -54,13 +53,13 @@ export default class DashState implements IState {
       ease: Phaser.Math.Easing.Sine.InOut,
       duration: duration,
     })
-    Player.startCooldownEvent(
-      DashState.DASH_COOLDOWN_MS,
-      UI.instance.dashIcon,
-      () => {
-        this.player.dashesLeft += 1
-      }
-    )
+    // Player.startCooldownEvent(
+    //   DashState.DASH_COOLDOWN_MS,
+    //   UI.instance.dashIcon,
+    //   () => {
+    //     this.player.dashesLeft += 1
+    //   }
+    // )
   }
 
   onUpdate(_dt: number): void {}
