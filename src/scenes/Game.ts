@@ -67,14 +67,14 @@ export default class Game extends Phaser.Scene {
     const bottomWall = this.matter.add
       .sprite(
         Constants.GAME_WIDTH / 2,
-        Constants.GAME_HEIGHT - 64,
+        Constants.GAME_HEIGHT - 92,
         '',
         undefined,
         {
           label: CollisionLabel.FLOOR,
         }
       )
-      .setDisplaySize(Constants.GAME_WIDTH, 1)
+      .setDisplaySize(Constants.GAME_WIDTH, 10)
       .setVisible(false)
       .setStatic(true)
       .setCollisionCategory(CollisionCategory.FLOOR)

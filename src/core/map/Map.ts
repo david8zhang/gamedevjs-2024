@@ -191,6 +191,7 @@ export class Map {
       32,
       32
     )!
+    const floorLayer = this.createLayer('Floor', tilesetPlatform)
     const platformLayer = this.createLayer('Platforms', tilesetPlatform)
     platformLayer.forEachTile(
       (tile) => {
@@ -215,6 +216,30 @@ export class Map {
       Constants.GAME_HEIGHT,
       { isNotEmpty: true }
     )
+
+    // floorLayer.forEachTile(
+    //   (tile) => {
+    //     this.scene.matter.add
+    //       .sprite(
+    //         tile.pixelX + tile.width / 2,
+    //         tile.pixelY + tile.height / 2,
+    //         '',
+    //         undefined,
+    //         { label: CollisionLabel.FLOOR }
+    //       )
+    //       .setVisible(false)
+    //       .setDisplaySize(tile.width, tile.height)
+    //       .setStatic(true)
+    //       .setOrigin(0, 0)
+    //       .setCollisionCategory(CollisionCategory.FLOOR)
+    //   },
+    //   this,
+    //   0,
+    //   0,
+    //   Constants.GAME_WIDTH,
+    //   Constants.GAME_HEIGHT,
+    //   { isNotEmpty: true }
+    // )
 
     const wallsLayer = this.createLayer('Walls', tilesetPlatform)
     wallsLayer.forEachTile(
