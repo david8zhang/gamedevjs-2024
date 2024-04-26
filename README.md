@@ -1,12 +1,19 @@
-# GamedevJS 2024 Project
+# Shinobot
 
 GamedevJS 2024 Project
 
 ## Controls
 
-- ALT to jump
-- Z to dash
+You are a Shinobot, a cybernetic shadow warrior programmed to destroy the alien bug menace. Kill enemies and store power charges until you can unleash your turbo mode!
+
+Controls:
+
 - Arrow Keys to move
+- Space to jump / double jump
+- F for basic attack
+- S to dash
+- D to throw a saw-blade shuriken
+
 
 ## Local Development
 
