@@ -25,8 +25,9 @@ export class LevelUpOption {
 
     this.text = this.ui.add
       .text(this.button.x, this.button.y, 'test', {
-        fontSize: '14px',
+        fontSize: '25px',
         color: 'white',
+        fontFamily: 'electric-boots',
         wordWrap: { width: 176, useAdvancedWrap: true },
       })
       .setOrigin(0.5, 0.5)

@@ -148,16 +148,16 @@ export class UI extends Phaser.Scene {
 
     this.gameOverModal = new GameOverModal(this)
     this.levelUpMenu = new LevelUpMenu(this)
-    // this.input.keyboard!.on(
-    //   Phaser.Input.Keyboard.Events.ANY_KEY_DOWN,
-    //   (e: Phaser.Input.Keyboard.Key) => {
-    //     if (e.keyCode === Phaser.Input.Keyboard.KeyCodes.L) {
-    //       console.log('==== TESTING LEVEL UP ===')
-    //       this.scene.manager.pause(Game.instance)
-    //       this.levelUpMenu.show()
-    //     }
-    //   }
-    // )
+    this.input.keyboard!.on(
+      Phaser.Input.Keyboard.Events.ANY_KEY_DOWN,
+      (e: Phaser.Input.Keyboard.Key) => {
+        if (e.keyCode === Phaser.Input.Keyboard.KeyCodes.L) {
+          console.log('==== TESTING LEVEL UP ===')
+          this.scene.manager.pause(Game.instance)
+          this.levelUpMenu.show()
+        }
+      }
+    )
     this.comboText = new ComboText(this)
   }
 

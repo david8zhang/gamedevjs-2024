@@ -10,9 +10,9 @@ export class UINumber {
   ) {
     const text = scene.add
       .text(x, y, str, {
-        fontSize: isTurboCharged ? '22px' : '20px',
+        fontSize: isTurboCharged ? '35px' : '30px',
         color: 'black',
-        fontFamily: 'space-comics',
+        fontFamily: 'electric-boots',
       })
       .setOrigin(0.5)
       .setDepth(5000)
