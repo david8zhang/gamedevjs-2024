@@ -26,7 +26,7 @@ export default class MoveState implements IState {
     this.player.sprite.setFrame(0)
   }
 
-  onUpdate(dt: number): void {
+  onUpdate(): void {
     const speed =
       Player.SPEED *
       (this.player.isTurboCharged ? Player.TURBO_CHARGE_SPEED_MULTIPLIER : 1)
