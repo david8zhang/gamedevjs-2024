@@ -25,8 +25,12 @@ export default class Game extends Phaser.Scene {
   create() {
     createAnims(this.anims)
 
+    this.add
+      .image(Constants.GAME_WIDTH / 2, Constants.GAME_HEIGHT / 2, 'tile-bg')
+      .setDisplaySize(Constants.GAME_WIDTH, Constants.GAME_HEIGHT)
+
     this.map = new Map(this, {
-      cellSize: 18,
+      cellSize: 32,
       walkableLayer: 'Platforms',
       width: Constants.GAME_WIDTH,
       height: Constants.GAME_HEIGHT,
@@ -63,14 +67,14 @@ export default class Game extends Phaser.Scene {
     const bottomWall = this.matter.add
       .sprite(
         Constants.GAME_WIDTH / 2,
-        Constants.GAME_HEIGHT - 36,
+        Constants.GAME_HEIGHT - 92,
         '',
         undefined,
         {
           label: CollisionLabel.FLOOR,
         }
       )
-      .setDisplaySize(Constants.GAME_WIDTH, 1)
+      .setDisplaySize(Constants.GAME_WIDTH, 10)
       .setVisible(false)
       .setStatic(true)
       .setCollisionCategory(CollisionCategory.FLOOR)

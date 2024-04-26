@@ -7,12 +7,9 @@ export default class Preload extends Phaser.Scene {
     // this.load.image('player', 'characters/player.png')
 
     // Tilemaps
-    this.load.tilemapTiledJSON('sample', 'tilemap/sample.json')
-    this.load.image('tilemap_packed', 'tilemap/tilemap_packed.png')
-    this.load.image(
-      'tilemap-backgrounds_packed',
-      'tilemap/tilemap-backgrounds_packed.png'
-    )
+    this.load.tilemapTiledJSON('tilemap-1', 'tilemap/tilemap-1.json')
+    this.load.image('industrial-tileset', 'tilemap/industrial-tileset.png')
+    this.load.image('tile-bg', 'tilemap/tile-bg.png')
 
     // Skill icons
     this.load.image('dash', 'icons/dash.png')
