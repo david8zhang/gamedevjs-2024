@@ -50,24 +50,34 @@ export class Projectile {
         if (enemyGameObject) {
           const enemyRef = enemyGameObject.getData('ref') as Monster
 
-          // Add a bit of knockback
-          enemyRef.sprite.setVelocity(this.sprite.flipX ? -2 : 2, -2.5)
+          if (!enemyRef.isDead) {
+            const flipX = this.sprite.active ? this.sprite.flipX : false
 
-          // Play the hit sprite
-          const hitSprite = this.game.add
-            .sprite(this.sprite.x, this.sprite.y, '')
-            .setVisible(false)
-            .setScale(2)
-            .setDepth(1000)
-            .on(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
-              hitSprite.destroy()
-            })
-          hitSprite.setPosition(enemyRef.sprite.x, enemyRef.sprite.y)
-          hitSprite
-            .setVisible(true)
-            .play('slash-horizontal-hit')
-            .setFlipX(this.sprite.flipX)
-          enemyRef.takeDamage(Player.DAMAGE)
+            // Add a bit of knockback
+            enemyRef.sprite.setVelocity(flipX ? -2 : 2, -2.5)
+
+            // Play the hit sprite
+            const hitSprite = this.game.add
+              .sprite(0, 0, '')
+              .setVisible(false)
+              .setScale(2)
+              .setDepth(1000)
+              .on(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
+                hitSprite.destroy()
+              })
+            hitSprite.setPosition(enemyRef.sprite.x, enemyRef.sprite.y)
+            hitSprite
+              .setVisible(true)
+              .play('slash-horizontal-hit')
+              .setFlipX(flipX)
+
+            const dmg =
+              Player.DAMAGE *
+              (this.game.player.isTurboCharged
+                ? Player.TURBO_CHARGE_DMG_MULTIPLIER
+                : 1)
+            enemyRef.takeDamage(dmg, this.game.player.isTurboCharged)
+          }
         }
       } else if (
         bodyA.label === CollisionLabel.BOUNDS ||

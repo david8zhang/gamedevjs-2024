@@ -27,7 +27,10 @@ export default class JumpState implements IState {
 
   onEnter(): void {
     if (this.player.isGrounded()) {
-      this.player.sprite.setVelocityY(-Player.JUMP_VELOCITY)
+      const jumpVelocity =
+        Player.JUMP_VELOCITY *
+        (this.player.isTurboCharged ? Player.TURBO_CHARGE_JUMP_MULTIPLIER : 1)
+      this.player.sprite.setVelocityY(-jumpVelocity)
     }
   }
 
@@ -35,9 +38,17 @@ export default class JumpState implements IState {
     const vy = this.player.sprite.getVelocity().y ?? 0
     const sprite = this.player.sprite
 
+    const jumpVelocity =
+      Player.JUMP_VELOCITY *
+      (this.player.isTurboCharged ? Player.TURBO_CHARGE_JUMP_MULTIPLIER : 1)
+
+    const speed =
+      Player.SPEED *
+      (this.player.isTurboCharged ? Player.TURBO_CHARGE_SPEED_MULTIPLIER : 1)
+
     if (this.player.isGrounded() && vy >= 0) {
       if (this.jumpBuffer) {
-        sprite.setVelocityY(-Player.JUMP_VELOCITY)
+        sprite.setVelocityY(-jumpVelocity)
         this.jumpBuffer = false
       } else if (sprite.getVelocity().x !== 0) {
         this.stateMachine.setState('MoveState')
@@ -54,10 +65,10 @@ export default class JumpState implements IState {
     // allow movement in the air
     if (this.keyLeft.isDown) {
       sprite.setFlipX(true)
-      sprite.setVelocityX(-Player.SPEED)
+      sprite.setVelocityX(-speed)
     } else if (this.keyRight.isDown) {
       sprite.setFlipX(false)
-      sprite.setVelocityX(Player.SPEED)
+      sprite.setVelocityX(speed)
     } else {
       sprite.setVelocityX(0)
     }
@@ -73,15 +84,23 @@ export default class JumpState implements IState {
     switch (e.keyCode) {
       case Phaser.Input.Keyboard.KeyCodes.SPACE: {
         if (!this.player.isGrounded() && !this.player.doubleJumpOnCooldown) {
-          this.player.doubleJumpOnCooldown = true
-          this.player.sprite.setVelocityY(-Player.JUMP_VELOCITY)
-          Player.startCooldownEvent(
-            Player.DOUBLE_JUMP_COOLDOWN_MS,
-            UI.instance.jumpIcon,
-            () => {
-              this.player.doubleJumpOnCooldown = false
-            }
-          )
+          const jumpVelocity =
+            Player.JUMP_VELOCITY *
+            (this.player.isTurboCharged
+              ? Player.TURBO_CHARGE_JUMP_MULTIPLIER
+              : 1)
+          this.player.sprite.setVelocityY(-jumpVelocity)
+
+          if (!this.player.isTurboCharged) {
+            this.player.doubleJumpOnCooldown = true
+            Player.startCooldownEvent(
+              Player.DOUBLE_JUMP_COOLDOWN_MS,
+              UI.instance.jumpIcon,
+              () => {
+                this.player.doubleJumpOnCooldown = false
+              }
+            )
+          }
         } else {
           this.jumpBuffer = true
           setTimeout(() => {

@@ -18,7 +18,7 @@ export interface MonsterConfig {
 
 export class Monster {
   private game: Game
-  private static HEALTH = 20
+  private static HEALTH = 10
   private static WALK_SPEED = 0.5
   private static TOUCH_DAMAGE = 5
 
@@ -74,7 +74,9 @@ export class Monster {
         this.isHitboxActive &&
         !this.isDead
       ) {
-        this.game.player.takeDamage(Monster.TOUCH_DAMAGE)
+        if (!this.game.player.isTurboCharged) {
+          this.game.player.takeDamage(Monster.TOUCH_DAMAGE)
+        }
       }
     })
 
@@ -150,7 +152,7 @@ export class Monster {
     )
   }
 
-  takeDamage(damage: number) {
+  takeDamage(damage: number, isTurboCharged: boolean) {
     this.healthbar.setVisible(true)
     this.takingDamage = true
     UINumber.createNumber(
@@ -158,7 +160,8 @@ export class Monster {
       this.game,
       this.sprite.x,
       this.sprite.y - 50,
-      false
+      false,
+      isTurboCharged
     )
     this.game.time.delayedCall(500, () => {
       this.takingDamage = false
@@ -185,5 +188,10 @@ export class Monster {
         this.healthbar.destroy()
       },
     })
+    if (this.game.player.isTurboCharged) {
+      this.game.player.restoreHealth(5)
+    } else {
+      this.game.player.incrementCombo()
+    }
   }
 }

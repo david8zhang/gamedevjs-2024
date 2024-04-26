@@ -26,11 +26,17 @@ export class Player {
   public static SPEED = 3
   public static DAMAGE = 5
   public static PROJECTILE_DAMAGE = 5
-
   public static DOUBLE_JUMP_COOLDOWN_MS = 2000
+  public static COMBO_EXPIRATION_TIME_MS = 5000
+
+  // Turbo charge
+  public static TURBOCHARGE_COMBO_THRESHOLD = 50
+  public static TURBOCHARGE_DURATION_MS = 10000
+  public static TURBO_CHARGE_SPEED_MULTIPLIER = 2
+  public static TURBO_CHARGE_JUMP_MULTIPLIER = 1.5
+  public static TURBO_CHARGE_DMG_MULTIPLIER = 2
 
   private game: Game
-
   public sprite: Phaser.Physics.Matter.Sprite
   public mainBody!: BodyType
   public enemyDetector!: Phaser.Physics.Matter.Sprite
@@ -40,10 +46,14 @@ export class Player {
   public isDead: boolean = false
   public animQueue: string[] = []
 
-  // Jump
+  // Cooldowns
   public doubleJumpOnCooldown: boolean = false
   public dashOnCooldown: boolean = false
   public projectileCooldown: boolean = false
+  public isTurboCharged: boolean = false
+
+  public combo: number = 0
+  public comboExpirationEvent!: Phaser.Time.TimerEvent
 
   private stateMachine: StateMachine
 
@@ -111,7 +121,7 @@ export class Player {
 
     this.sprite
       .setExistingBody(this.mainBody)
-      .setScale(2)
+      .setScale(4)
       .setPosition(Player.SPAWN_POSITION.x, Player.SPAWN_POSITION.y)
       .setFixedRotation()
   }
@@ -186,6 +196,48 @@ export class Player {
     }
   }
 
+  incrementCombo() {
+    this.combo++
+    // Begin tubocharge
+    if (this.combo === Player.TURBOCHARGE_COMBO_THRESHOLD) {
+      this.combo = 0
+      UI.instance.comboText.displayTurbocharged()
+      this.isTurboCharged = true
+      if (this.comboExpirationEvent) {
+        this.comboExpirationEvent.destroy()
+      }
+      this.game.time.delayedCall(Player.TURBOCHARGE_DURATION_MS, () => {
+        this.isTurboCharged = false
+        UI.instance.comboText.endTurbocharge()
+      })
+      const turboChargeMeterEvent = this.game.time.addEvent({
+        delay: 125,
+        repeat: Player.TURBOCHARGE_DURATION_MS / 125,
+        callback: () => {
+          const progress = 1 - turboChargeMeterEvent.getOverallProgress()
+          UI.instance.comboText.decreaseTurboChargeMeter(progress)
+        },
+      })
+    } else {
+      UI.instance.comboText.displayCombo(this.combo)
+      if (this.comboExpirationEvent) {
+        this.comboExpirationEvent.destroy()
+      }
+      this.comboExpirationEvent = this.game.time.addEvent({
+        delay: 125,
+        repeat: Player.COMBO_EXPIRATION_TIME_MS / 125,
+        callback: () => {
+          const opacity = 1 - this.comboExpirationEvent.getOverallProgress()
+          UI.instance.comboText.fadeDown(opacity)
+          if (this.comboExpirationEvent.getOverallProgress() == 1) {
+            this.combo = 0
+            UI.instance.comboText.displayCombo(this.combo)
+          }
+        },
+      })
+    }
+  }
+
   onAnimationComplete() {
     if (this.animQueue.length == 0) {
       this.isAttacking = false
@@ -256,6 +308,10 @@ export class Player {
     attackSprite.play()
   }
 
+  restoreHealth(hpAmount: number) {
+    UI.instance.increasePlayerHealth(hpAmount)
+  }
+
   takeDamage(damage: number) {
     if (!this.isInvincible) {
       this.isInvincible = true
@@ -268,7 +324,8 @@ export class Player {
         this.game,
         this.sprite.x,
         this.sprite.y - 20,
-        true
+        true,
+        false
       )
 
       UI.instance.decreasePlayerHealth(damage)
@@ -315,6 +372,8 @@ export class Player {
   }
 
   update(_t: number, dt: number) {
-    this.stateMachine.update(dt)
+    if (!this.isDead) {
+      this.stateMachine.update(dt)
+    }
   }
 }
