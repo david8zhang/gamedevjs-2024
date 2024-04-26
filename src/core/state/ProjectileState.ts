@@ -6,7 +6,6 @@ import StateMachine, { IState } from './StateMachine'
 
 export default class ProjectileState implements IState {
   private static PROJECTILE_COOLDOWN_MS = 1000
-
   public name: string = 'ProjectileState'
 
   private player: Player

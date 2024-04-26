@@ -8,7 +8,6 @@ import {
 import { UI } from '../scenes/UI'
 import { UINumber } from './ui/UINumber'
 import { AttackSprite } from './AttackSprite'
-import { ActionIcon } from './ui/ActionIcon'
 import StateMachine from './state/StateMachine'
 import IdleState from './state/IdleState'
 import MoveState from './state/MoveState'
@@ -16,6 +15,8 @@ import JumpState from './state/JumpState'
 import DashState from './state/DashState'
 import AttackState from './state/AttackState'
 import ProjectileState from './state/ProjectileState'
+import SkillCooldown from '../utils/SkillCooldown'
+import { ActionIcon } from './ui/ActionIcon'
 
 export class Player {
   private static SPAWN_POSITION = {
@@ -27,12 +28,14 @@ export class Player {
     'slash-horizontal': 'slash',
     'dash-strike': 'dash',
   }
+  private static PROJECTILE_COOLDOWN_MS = 1000
+  private static DOUBLE_JUMP_COOLDOWN_MS = 2000
+  private static DASH_COOLDOWN_MS = 4000
+
   public static JUMP_VELOCITY = 10
   public static SPEED = 3
   public static DAMAGE = 5
   public static PROJECTILE_DAMAGE = 5
-  public static DOUBLE_JUMP_COOLDOWN_MS = 2000
-  public static COMBO_EXPIRATION_TIME_MS = 5000
 
   // Turbo charge
   public static TURBOCHARGE_COMBO_THRESHOLD = 50
@@ -40,6 +43,7 @@ export class Player {
   public static TURBO_CHARGE_SPEED_MULTIPLIER = 2
   public static TURBO_CHARGE_JUMP_MULTIPLIER = 1.5
   public static TURBO_CHARGE_DMG_MULTIPLIER = 2
+  public static COMBO_EXPIRATION_TIME_MS = 15000
 
   private game: Game
   public sprite: Phaser.Physics.Matter.Sprite
@@ -57,9 +61,12 @@ export class Player {
   public projectileCooldown: boolean = false
   public isTurboCharged: boolean = false
 
+  public doubleJumpSkillCooldown: SkillCooldown
+  public dashSkillCooldown: SkillCooldown
+  public projectileSkillCooldown: SkillCooldown
+
   public combo: number = 0
   public comboExpirationEvent!: Phaser.Time.TimerEvent
-
   private stateMachine: StateMachine
 
   constructor(game: Game) {
@@ -83,6 +90,21 @@ export class Player {
       }
     })
     this.setupAttackAnimMap()
+
+    this.doubleJumpSkillCooldown = new SkillCooldown(
+      Player.DOUBLE_JUMP_COOLDOWN_MS,
+      'jumpIcon'
+    )
+    this.dashSkillCooldown = new SkillCooldown(
+      Player.DASH_COOLDOWN_MS,
+      'dashIcon'
+    )
+    this.projectileSkillCooldown = new SkillCooldown(
+      Player.PROJECTILE_COOLDOWN_MS,
+      'throwingStarIcon'
+    )
+
+    // Setup state machine
     this.stateMachine = new StateMachine()
     this.stateMachine.addState(new IdleState(this, this.stateMachine))
     this.stateMachine.addState(new MoveState(this, this.stateMachine))
@@ -385,5 +407,8 @@ export class Player {
     if (!this.isDead) {
       this.stateMachine.update(dt)
     }
+    this.dashSkillCooldown.update(dt)
+    this.doubleJumpSkillCooldown.update(dt)
+    this.projectileSkillCooldown.update(dt)
   }
 }

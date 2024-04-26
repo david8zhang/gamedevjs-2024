@@ -1,11 +1,13 @@
 import Game from '../../scenes/Game'
 import { UI } from '../../scenes/UI'
+import SkillCooldown from '../../utils/SkillCooldown'
 import { Player } from '../Player'
 import StateMachine, { IState } from './StateMachine'
 
 export default class JumpState implements IState {
   public name: string = 'JumpState'
   private MAX_FALL_VELOCITY = 9
+  public static DOUBLE_JUMP_COOLDOWN_MS = 2000
 
   private keyRight!: Phaser.Input.Keyboard.Key
   private keyLeft!: Phaser.Input.Keyboard.Key
@@ -97,7 +99,7 @@ export default class JumpState implements IState {
           if (!this.player.isTurboCharged) {
             this.player.doubleJumpOnCooldown = true
             Player.startCooldownEvent(
-              Player.DOUBLE_JUMP_COOLDOWN_MS,
+              JumpState.DOUBLE_JUMP_COOLDOWN_MS,
               UI.instance.jumpIcon,
               () => {
                 this.player.doubleJumpOnCooldown = false
@@ -113,7 +115,7 @@ export default class JumpState implements IState {
         break
       }
       case Phaser.Input.Keyboard.KeyCodes.S: {
-        if (!this.player.dashOnCooldown) {
+        if (this.player.dashSkillCooldown.usesLeft > 0) {
           this.stateMachine.setState('DashState')
         }
         break
