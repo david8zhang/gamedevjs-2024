@@ -39,6 +39,7 @@ export class LevelUpOption {
       this.ui.levelUpMenu.hide()
       this.ui.sound.play('powerup', { volume: 0.5 })
       this.powerUp.onPickUp()
+      this.ui.increasePlayerHealth(this.ui.healthbar.maxValue)
     })
   }
 
