@@ -53,13 +53,6 @@ export default class DashState implements IState {
       ease: Phaser.Math.Easing.Sine.InOut,
       duration: duration,
     })
-    // Player.startCooldownEvent(
-    //   DashState.DASH_COOLDOWN_MS,
-    //   UI.instance.dashIcon,
-    //   () => {
-    //     this.player.dashesLeft += 1
-    //   }
-    // )
   }
 
   onUpdate(_dt: number): void {}

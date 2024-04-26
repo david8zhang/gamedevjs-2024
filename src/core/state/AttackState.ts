@@ -37,7 +37,7 @@ export default class AttackState implements IState {
     switch (e.keyCode) {
       // Can cancel attack into dash
       case Phaser.Input.Keyboard.KeyCodes.S: {
-        if (this.player.dashesLeft > 0) {
+        if (this.player.dashSkillCooldown.usesLeft > 0) {
           this.stateMachine.setState('DashState')
         }
         break
