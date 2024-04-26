@@ -8,10 +8,10 @@ const ENEMY_TYPES: { [key: string]: any } = {
   'enemy-squiggle': {
     texture: 'enemy-squiggle',
     damagePct: 0.25,
-    expReward: 100,
+    expReward: 50,
     hitboxScale: {
-      width: 2,
-      height: 2,
+      width: 1,
+      height: 1,
     },
     anims: {
       move: 'squiggle-move',
@@ -21,10 +21,10 @@ const ENEMY_TYPES: { [key: string]: any } = {
   'enemy-beetle': {
     texture: 'enemy-beetle',
     damagePct: 0.1,
-    expReward: 50,
+    expReward: 20,
     hitboxScale: {
-      width: 1.5,
-      height: 1.5,
+      width: 1,
+      height: 1,
     },
     anims: {
       move: 'beetle-move',

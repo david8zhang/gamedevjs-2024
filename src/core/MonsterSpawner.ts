@@ -37,10 +37,10 @@ export class MonsterSpawner {
   }
 
   getEnemyTypeToSpawn() {
-    if (this.game.player.level > 10) {
-      return 'enemy-beetle'
-    } else if (this.game.player.level > 25) {
+    if (this.game.player.level > 25) {
       return 'enemy-squiggle'
+    } else if (this.game.player.level > 10) {
+      return 'enemy-beetle'
     }
     return 'enemy-snail'
   }
