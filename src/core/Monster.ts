@@ -153,6 +153,7 @@ export class Monster {
   }
 
   takeDamage(damage: number, isTurboCharged: boolean) {
+    this.game.sound.play('impact', { volume: 0.5 })
     this.healthbar.setVisible(true)
     this.takingDamage = true
     UINumber.createNumber(

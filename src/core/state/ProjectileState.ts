@@ -19,6 +19,7 @@ export default class ProjectileState implements IState {
 
   onEnter(): void {
     if (!this.player.projectileCooldown) {
+      Game.instance.sound.play('throw', { volume: 0.5 })
       new Projectile(Game.instance, {
         position: {
           x: this.player.sprite.x,

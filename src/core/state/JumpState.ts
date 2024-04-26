@@ -31,6 +31,7 @@ export default class JumpState implements IState {
         Player.JUMP_VELOCITY *
         (this.player.isTurboCharged ? Player.TURBO_CHARGE_JUMP_MULTIPLIER : 1)
       this.player.sprite.setVelocityY(-jumpVelocity)
+      Game.instance.sound.play('jump', { volume: 0.5 })
     }
   }
 
@@ -48,6 +49,7 @@ export default class JumpState implements IState {
 
     if (this.player.isGrounded() && vy >= 0) {
       if (this.jumpBuffer) {
+        Game.instance.sound.play('jump', { volume: 0.5 })
         sprite.setVelocityY(-jumpVelocity)
         this.jumpBuffer = false
       } else if (sprite.getVelocity().x !== 0) {
@@ -89,6 +91,7 @@ export default class JumpState implements IState {
             (this.player.isTurboCharged
               ? Player.TURBO_CHARGE_JUMP_MULTIPLIER
               : 1)
+          Game.instance.sound.play('jump', { volume: 0.5 })
           this.player.sprite.setVelocityY(-jumpVelocity)
 
           if (!this.player.isTurboCharged) {

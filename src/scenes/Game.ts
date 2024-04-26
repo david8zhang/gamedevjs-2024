@@ -23,6 +23,7 @@ export default class Game extends Phaser.Scene {
     }
   }
   create() {
+    this.sound.play('bgm', { loop: true, volume: 0.25 })
     createAnims(this.anims)
 
     this.add

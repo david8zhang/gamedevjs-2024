@@ -54,6 +54,15 @@ export default class Preload extends Phaser.Scene {
       atlasURL: 'characters/player.json',
       textureURL: 'characters/player.png',
     })
+
+    // Sound
+    this.load.audio('bgm', 'audio/bgm.mp3')
+    this.load.audio('slash', 'audio/slash.mp3')
+    this.load.audio('dash', 'audio/dash.mp3')
+    this.load.audio('impact', 'audio/impact.mp3')
+    this.load.audio('jump', 'audio/jump.wav')
+    this.load.audio('turbo', 'audio/turbocharged.mp3')
+    this.load.audio('throw', 'audio/throw.mp3')
   }
 
   create() {

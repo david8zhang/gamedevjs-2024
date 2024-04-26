@@ -22,6 +22,11 @@ export class Player {
     x: 50,
     y: Constants.GAME_HEIGHT - 100,
   }
+  private static ANIM_KEY_TO_SFX: { [key: string]: string } = {
+    'slash-vertical': 'slash',
+    'slash-horizontal': 'slash',
+    'dash-strike': 'dash',
+  }
   public static JUMP_VELOCITY = 10
   public static SPEED = 3
   public static DAMAGE = 5
@@ -201,6 +206,8 @@ export class Player {
     // Begin tubocharge
     if (this.combo === Player.TURBOCHARGE_COMBO_THRESHOLD) {
       this.combo = 0
+      this.game.sound.stopByKey('bgm')
+      this.game.sound.play('turbo', { volume: 0.3 })
       UI.instance.comboText.displayTurbocharged()
       this.isTurboCharged = true
       if (this.comboExpirationEvent) {
@@ -209,6 +216,8 @@ export class Player {
       this.game.time.delayedCall(Player.TURBOCHARGE_DURATION_MS, () => {
         this.isTurboCharged = false
         UI.instance.comboText.endTurbocharge()
+        this.game.sound.stopByKey('turbo')
+        this.game.sound.play('bgm', { volume: 0.25 })
       })
       const turboChargeMeterEvent = this.game.time.addEvent({
         delay: 125,
@@ -306,6 +315,7 @@ export class Player {
     }
     attackSprite.setVisible(true)
     attackSprite.play()
+    this.game.sound.play(Player.ANIM_KEY_TO_SFX[animKey], { volume: 0.5 })
   }
 
   restoreHealth(hpAmount: number) {
