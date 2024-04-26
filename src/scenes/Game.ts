@@ -9,13 +9,11 @@ import {
 import { MonsterSpawner } from '../core/MonsterSpawner'
 import { createAnims } from '../core/anims/createAnims'
 import { BodyType } from 'matter'
-import PowerUp from '../core/powerup/PowerUp'
 
 export default class Game extends Phaser.Scene {
   public player!: Player
   public map!: Map
   public spawners: MonsterSpawner[] = []
-  public powerUps: PowerUp[] = []
   public static instance: Game
 
   constructor() {

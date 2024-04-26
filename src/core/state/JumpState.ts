@@ -115,7 +115,7 @@ export default class JumpState implements IState {
         break
       }
       case Phaser.Input.Keyboard.KeyCodes.S: {
-        if (this.player.dashSkillCooldown.usesLeft > 0) {
+        if (this.player.dashOnCooldown) {
           this.stateMachine.setState('DashState')
         }
         break

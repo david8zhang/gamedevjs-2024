@@ -1,7 +1,6 @@
 import { ActionIcon } from '../core/ui/ActionIcon'
 import { ComboText } from '../core/ui/ComboText'
 import { GameOverModal } from '../core/ui/GameOverModal'
-import { LevelUpMenu } from '../core/ui/LevelUpMenu'
 import { UIValueBar } from '../core/ui/UIValueBar'
 import { Constants } from '../utils/Constants'
 import Game from './Game'
@@ -19,7 +18,6 @@ export class UI extends Phaser.Scene {
   public healthText!: Phaser.GameObjects.Text
   public gameOverModal!: GameOverModal
   public comboText!: ComboText
-  public levelUpMenu!: LevelUpMenu
 
   constructor() {
     super('ui')
@@ -99,18 +97,6 @@ export class UI extends Phaser.Scene {
     this.gameOverModal = new GameOverModal(this)
 
     this.comboText = new ComboText(this)
-    this.levelUpMenu = new LevelUpMenu(this)
-
-    this.input.keyboard!.on(
-      Phaser.Input.Keyboard.Events.ANY_KEY_DOWN,
-      (e: Phaser.Input.Keyboard.Key) => {
-        if (e.keyCode === Phaser.Input.Keyboard.KeyCodes.L) {
-          console.log('==== TESTING LEVEL UP ===')
-          this.scene.manager.pause(Game.instance)
-          this.levelUpMenu.show()
-        }
-      }
-    )
   }
 
   decreasePlayerHealth(amount: number) {

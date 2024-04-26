@@ -28,7 +28,6 @@ export default class DashState implements IState {
       const dashSpeed = 0.75
       const duration = Math.abs(sprite.x - endX) / dashSpeed
       sprite.play('dash')
-      this.player.dashSkillCooldown.usesLeft -= 1
       Game.instance.tweens.add({
         targets: [sprite],
         onStart: () => {

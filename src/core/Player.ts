@@ -61,10 +61,6 @@ export class Player {
   public projectileCooldown: boolean = false
   public isTurboCharged: boolean = false
 
-  public doubleJumpSkillCooldown: SkillCooldown
-  public dashSkillCooldown: SkillCooldown
-  public projectileSkillCooldown: SkillCooldown
-
   public combo: number = 0
   public comboExpirationEvent!: Phaser.Time.TimerEvent
   private stateMachine: StateMachine
@@ -90,19 +86,6 @@ export class Player {
       }
     })
     this.setupAttackAnimMap()
-
-    this.doubleJumpSkillCooldown = new SkillCooldown(
-      Player.DOUBLE_JUMP_COOLDOWN_MS,
-      'jumpIcon'
-    )
-    this.dashSkillCooldown = new SkillCooldown(
-      Player.DASH_COOLDOWN_MS,
-      'dashIcon'
-    )
-    this.projectileSkillCooldown = new SkillCooldown(
-      Player.PROJECTILE_COOLDOWN_MS,
-      'throwingStarIcon'
-    )
 
     // Setup state machine
     this.stateMachine = new StateMachine()
@@ -407,8 +390,5 @@ export class Player {
     if (!this.isDead) {
       this.stateMachine.update(dt)
     }
-    this.dashSkillCooldown.update(dt)
-    this.doubleJumpSkillCooldown.update(dt)
-    this.projectileSkillCooldown.update(dt)
   }
 }
