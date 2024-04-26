@@ -54,6 +54,21 @@ export default class Preload extends Phaser.Scene {
       atlasURL: 'characters/player.json',
       textureURL: 'characters/player.png',
     })
+    this.load.aseprite({
+      key: 'enemy-beetle',
+      atlasURL: 'characters/monsters/enemy-beetle.json',
+      textureURL: 'characters/monsters/enemy-beetle.png',
+    })
+    this.load.aseprite({
+      key: 'enemy-snail',
+      atlasURL: 'characters/monsters/enemy-snail.json',
+      textureURL: 'characters/monsters/enemy-snail.png',
+    })
+    this.load.aseprite({
+      key: 'enemy-squiggle',
+      atlasURL: 'characters/monsters/enemy-squiggle.json',
+      textureURL: 'characters/monsters/enemy-squiggle.png',
+    })
 
     // Sound
     this.load.audio('bgm', 'audio/bgm.mp3')
@@ -63,6 +78,7 @@ export default class Preload extends Phaser.Scene {
     this.load.audio('jump', 'audio/jump.wav')
     this.load.audio('turbo', 'audio/turbocharged.mp3')
     this.load.audio('throw', 'audio/throw.mp3')
+    this.load.audio('powerup', 'audio/powerup.wav')
   }
 
   create() {

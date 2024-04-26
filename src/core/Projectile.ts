@@ -2,7 +2,6 @@ import { BodyType } from 'matter'
 import Game from '../scenes/Game'
 import { CollisionCategory, CollisionLabel } from '../utils/Constants'
 import { Monster } from './Monster'
-import { Player } from './Player'
 
 export interface ProjectileConfig {
   position: {
@@ -70,13 +69,10 @@ export class Projectile {
               .setVisible(true)
               .play('slash-horizontal-hit')
               .setFlipX(flipX)
-
-            const dmg =
-              Player.DAMAGE *
-              (this.game.player.isTurboCharged
-                ? Player.TURBO_CHARGE_DMG_MULTIPLIER
-                : 1)
-            enemyRef.takeDamage(dmg, this.game.player.isTurboCharged)
+            enemyRef.takeDamage(
+              this.game.player.calculateDamage(),
+              this.game.player.isTurboCharged
+            )
           }
         }
       } else if (

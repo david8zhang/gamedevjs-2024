@@ -55,4 +55,7 @@ export const createAnims = (anims: Phaser.Animations.AnimationManager) => {
   })
 
   anims.createFromAseprite('player')
+  anims.createFromAseprite('enemy-squiggle')
+  anims.createFromAseprite('enemy-beetle')
+  anims.createFromAseprite('enemy-snail')
 }

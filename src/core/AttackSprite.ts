@@ -2,7 +2,6 @@ import { BodyType } from 'matter'
 import Game from '../scenes/Game'
 import { CollisionLabel, CollisionCategory } from '../utils/Constants'
 import { Monster } from './Monster'
-import { Player } from './Player'
 
 export interface AttackSpriteConfig {
   hitboxScale: {
@@ -100,12 +99,10 @@ export class AttackSprite {
                 .play(this.hitAnimKey)
                 .setFlipX(this.sprite.flipX)
 
-              const dmg =
-                Player.DAMAGE *
-                (this.game.player.isTurboCharged
-                  ? Player.TURBO_CHARGE_DMG_MULTIPLIER
-                  : 1)
-              enemyRef.takeDamage(dmg, this.game.player.isTurboCharged)
+              enemyRef.takeDamage(
+                this.game.player.calculateDamage(),
+                this.game.player.isTurboCharged
+              )
             }
           }
         }

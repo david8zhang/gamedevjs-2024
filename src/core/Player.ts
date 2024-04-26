@@ -16,7 +16,6 @@ import DashState from './state/DashState'
 import AttackState from './state/AttackState'
 import ProjectileState from './state/ProjectileState'
 import SkillCooldown from '../utils/SkillCooldown'
-import { ActionIcon } from './ui/ActionIcon'
 
 export class Player {
   private static SPAWN_POSITION = {
@@ -34,8 +33,6 @@ export class Player {
 
   public static JUMP_VELOCITY = 10
   public static SPEED = 3
-  public static DAMAGE = 5
-  public static PROJECTILE_DAMAGE = 5
 
   // Turbo charge
   public static TURBOCHARGE_COMBO_THRESHOLD = 50
@@ -54,12 +51,20 @@ export class Player {
   public isAttacking: boolean = false
   public isDead: boolean = false
   public animQueue: string[] = []
+  public level: number = 1
+  public totalExp: number = 0
+  public turboChargeDuration = Player.TURBOCHARGE_DURATION_MS
+  public comboThresholdForTurbo = Player.TURBOCHARGE_COMBO_THRESHOLD
+
+  public minDamage = 3
+  public maxDamage = 5
 
   // Cooldowns
-  public doubleJumpOnCooldown: boolean = false
-  public dashOnCooldown: boolean = false
-  public projectileCooldown: boolean = false
   public isTurboCharged: boolean = false
+
+  public doubleJumpSkillCooldown: SkillCooldown
+  public dashSkillCooldown: SkillCooldown
+  public projectileSkillCooldown: SkillCooldown
 
   public combo: number = 0
   public comboExpirationEvent!: Phaser.Time.TimerEvent
@@ -86,6 +91,19 @@ export class Player {
       }
     })
     this.setupAttackAnimMap()
+
+    this.doubleJumpSkillCooldown = new SkillCooldown(
+      Player.DOUBLE_JUMP_COOLDOWN_MS,
+      'jumpIcon'
+    )
+    this.dashSkillCooldown = new SkillCooldown(
+      Player.DASH_COOLDOWN_MS,
+      'dashIcon'
+    )
+    this.projectileSkillCooldown = new SkillCooldown(
+      Player.PROJECTILE_COOLDOWN_MS,
+      'throwingStarIcon'
+    )
 
     // Setup state machine
     this.stateMachine = new StateMachine()
@@ -206,10 +224,14 @@ export class Player {
     }
   }
 
+  get maxHealth() {
+    return UI.instance.healthbar.maxValue
+  }
+
   incrementCombo() {
     this.combo++
     // Begin tubocharge
-    if (this.combo === Player.TURBOCHARGE_COMBO_THRESHOLD) {
+    if (this.combo === this.comboThresholdForTurbo) {
       this.combo = 0
       this.game.sound.stopByKey('bgm')
       this.game.sound.play('turbo', { volume: 0.3 })
@@ -218,7 +240,7 @@ export class Player {
       if (this.comboExpirationEvent) {
         this.comboExpirationEvent.destroy()
       }
-      this.game.time.delayedCall(Player.TURBOCHARGE_DURATION_MS, () => {
+      this.game.time.delayedCall(this.turboChargeDuration, () => {
         this.isTurboCharged = false
         UI.instance.comboText.endTurbocharge()
         this.game.sound.stopByKey('turbo')
@@ -226,7 +248,7 @@ export class Player {
       })
       const turboChargeMeterEvent = this.game.time.addEvent({
         delay: 125,
-        repeat: Player.TURBOCHARGE_DURATION_MS / 125,
+        repeat: this.turboChargeDuration / 125,
         callback: () => {
           const progress = 1 - turboChargeMeterEvent.getOverallProgress()
           UI.instance.comboText.decreaseTurboChargeMeter(progress)
@@ -271,25 +293,6 @@ export class Player {
     }
   }
 
-  static startCooldownEvent(
-    cooldownTime: number,
-    skillIcon: ActionIcon,
-    onComplete: () => void
-  ) {
-    const refreshInterval = 125
-    const cooldownEvent = Game.instance.time.addEvent({
-      delay: refreshInterval,
-      repeat: cooldownTime / refreshInterval,
-      callback: () => {
-        skillIcon.updateCooldownOverlay(1 - cooldownEvent.getOverallProgress())
-        if (cooldownEvent.getOverallProgress() == 1) {
-          onComplete()
-        }
-      },
-    })
-    skillIcon.updateCooldownOverlay(1 - cooldownEvent.getOverallProgress())
-  }
-
   isGrounded() {
     const floorBodies = this.game.matter.world
       .getAllBodies()
@@ -320,11 +323,21 @@ export class Player {
     }
     attackSprite.setVisible(true)
     attackSprite.play()
-    this.game.sound.play(Player.ANIM_KEY_TO_SFX[animKey], { volume: 0.5 })
+
+    const sfxKey = Player.ANIM_KEY_TO_SFX[animKey]
+    let volume = 0.5
+    if (sfxKey == 'slash') {
+      volume = 0.2
+    }
+    this.game.sound.play(sfxKey, { volume })
   }
 
   restoreHealth(hpAmount: number) {
     UI.instance.increasePlayerHealth(hpAmount)
+  }
+
+  addExp(exp: number) {
+    UI.instance.increasePlayerExp(exp)
   }
 
   takeDamage(damage: number) {
@@ -386,9 +399,25 @@ export class Player {
     })
   }
 
+  public static getExpRequiredForLevel(level: number) {
+    return 25 * level
+  }
+
+  public calculateDamage() {
+    const baseDamage = Phaser.Math.Between(this.minDamage, this.maxDamage)
+    return (
+      baseDamage *
+      (this.game.player.isTurboCharged ? Player.TURBO_CHARGE_DMG_MULTIPLIER : 1)
+    )
+  }
+
   update(_t: number, dt: number) {
     if (!this.isDead) {
       this.stateMachine.update(dt)
     }
+    this.stateMachine.update(dt)
+    this.dashSkillCooldown.update(dt)
+    this.doubleJumpSkillCooldown.update(dt)
+    this.projectileSkillCooldown.update(dt)
   }
 }

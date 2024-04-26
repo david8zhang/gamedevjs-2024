@@ -1,6 +1,4 @@
 import Game from '../../scenes/Game'
-import { UI } from '../../scenes/UI'
-import SkillCooldown from '../../utils/SkillCooldown'
 import { Player } from '../Player'
 import StateMachine, { IState } from './StateMachine'
 
@@ -51,6 +49,7 @@ export default class JumpState implements IState {
 
     if (this.player.isGrounded() && vy >= 0) {
       if (this.jumpBuffer) {
+        Game.instance.player.doubleJumpSkillCooldown.usesLeft--
         Game.instance.sound.play('jump', { volume: 0.5 })
         sprite.setVelocityY(-jumpVelocity)
         this.jumpBuffer = false
@@ -87,7 +86,14 @@ export default class JumpState implements IState {
   handleInput(e: Phaser.Input.Keyboard.Key): void {
     switch (e.keyCode) {
       case Phaser.Input.Keyboard.KeyCodes.SPACE: {
-        if (!this.player.isGrounded() && !this.player.doubleJumpOnCooldown) {
+        if (
+          !this.player.isGrounded() &&
+          this.player.doubleJumpSkillCooldown.usesLeft > 0
+        ) {
+          if (!this.player.isTurboCharged) {
+            this.player.doubleJumpSkillCooldown.usesLeft--
+          }
+
           const jumpVelocity =
             Player.JUMP_VELOCITY *
             (this.player.isTurboCharged
@@ -95,17 +101,6 @@ export default class JumpState implements IState {
               : 1)
           Game.instance.sound.play('jump', { volume: 0.5 })
           this.player.sprite.setVelocityY(-jumpVelocity)
-
-          if (!this.player.isTurboCharged) {
-            this.player.doubleJumpOnCooldown = true
-            Player.startCooldownEvent(
-              JumpState.DOUBLE_JUMP_COOLDOWN_MS,
-              UI.instance.jumpIcon,
-              () => {
-                this.player.doubleJumpOnCooldown = false
-              }
-            )
-          }
         } else {
           this.jumpBuffer = true
           setTimeout(() => {
@@ -115,7 +110,10 @@ export default class JumpState implements IState {
         break
       }
       case Phaser.Input.Keyboard.KeyCodes.S: {
-        if (this.player.dashOnCooldown) {
+        if (
+          this.player.dashSkillCooldown.usesLeft > 0 ||
+          this.player.isTurboCharged
+        ) {
           this.stateMachine.setState('DashState')
         }
         break

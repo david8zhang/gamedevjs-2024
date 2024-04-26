@@ -4,6 +4,49 @@ import { CollisionCategory, CollisionLabel } from '../utils/Constants'
 import { UINumber } from './ui/UINumber'
 import { UIValueBar } from './ui/UIValueBar'
 
+const ENEMY_TYPES: { [key: string]: any } = {
+  'enemy-squiggle': {
+    texture: 'enemy-squiggle',
+    damagePct: 0.25,
+    expReward: 100,
+    hitboxScale: {
+      width: 2,
+      height: 2,
+    },
+    anims: {
+      move: 'squiggle-move',
+    },
+    maxHealth: 100,
+  },
+  'enemy-beetle': {
+    texture: 'enemy-beetle',
+    damagePct: 0.1,
+    expReward: 50,
+    hitboxScale: {
+      width: 1.5,
+      height: 1.5,
+    },
+    anims: {
+      move: 'beetle-move',
+    },
+    maxHealth: 50,
+  },
+  'enemy-snail': {
+    texture: 'enemy-snail',
+    damagePct: 0.05,
+    expReward: 5,
+    scale: 3,
+    hitboxScale: {
+      width: 1,
+      height: 1,
+    },
+    anims: {
+      move: 'snail-move',
+    },
+    maxHealth: 15,
+  },
+}
+
 enum WalkDirections {
   LEFT = 'LEFT',
   RIGHT = 'RIGHT',
@@ -14,13 +57,12 @@ export interface MonsterConfig {
     x: number
     y: number
   }
+  enemyType: string
 }
 
 export class Monster {
   private game: Game
-  private static HEALTH = 10
   private static WALK_SPEED = 0.5
-  private static TOUCH_DAMAGE = 5
 
   private currWalkDirection: WalkDirections
   private isTurning: boolean = false
@@ -31,12 +73,33 @@ export class Monster {
   public id: string
   public isDead: boolean = false
   public isHitboxActive: boolean = false
+  public expReward: number = 5
+  private damagePlayerHpPct = 0
+  private moveAnimKey: string
+  private maxHealth: number = 0
 
   constructor(game: Game, config: MonsterConfig) {
     this.game = game
-    this.sprite = this.game.matter.add.sprite(0, 0, 'monster')
+    const enemyType = ENEMY_TYPES[config.enemyType]
+
+    this.moveAnimKey = enemyType.anims.move
+    this.damagePlayerHpPct = enemyType.damagePct
+    this.expReward = enemyType.expReward
+    this.maxHealth = enemyType.maxHealth
+
+    this.sprite = this.game.matter.add.sprite(0, 0, enemyType.texture)
     this.id = Phaser.Utils.String.UUID()
+
+    const { Bodies } = (Phaser.Physics.Matter as any).Matter as typeof MatterJS
+    const mainBody = Bodies.rectangle(
+      0,
+      0,
+      this.sprite.displayWidth * enemyType.hitboxScale.width,
+      this.sprite.displayHeight * enemyType.hitboxScale.height
+    )
+
     this.sprite
+      .setExistingBody(mainBody as BodyType)
       .setScale(2)
       .setFixedRotation()
       .setCollisionCategory(CollisionCategory.ENEMY)
@@ -51,7 +114,9 @@ export class Monster {
       .setBounce(0)
       .setAlpha(0)
       .setPosition(config.position.x, config.position.y)
-    ;(this.sprite.body as BodyType).label = CollisionLabel.ENEMY
+
+    const body = this.sprite.body as BodyType
+    body.label = CollisionLabel.ENEMY
 
     this.currWalkDirection =
       Phaser.Math.Between(0, 1) == 0
@@ -75,7 +140,9 @@ export class Monster {
         !this.isDead
       ) {
         if (!this.game.player.isTurboCharged) {
-          this.game.player.takeDamage(Monster.TOUCH_DAMAGE)
+          this.game.player.takeDamage(
+            Math.round(this.game.player.maxHealth * this.damagePlayerHpPct)
+          )
         }
       }
     })
@@ -97,7 +164,7 @@ export class Monster {
       y: this.sprite.y - this.sprite.displayHeight / 2 - 5,
       width: 50,
       height: 5,
-      maxValue: Monster.HEALTH,
+      maxValue: this.maxHealth,
       borderWidth: 2,
       radius: 0,
     })
@@ -143,7 +210,8 @@ export class Monster {
       return
     }
 
-    this.sprite.setFlipX(this.currWalkDirection === WalkDirections.RIGHT)
+    this.sprite.play(this.moveAnimKey, true)
+    this.sprite.setFlipX(this.currWalkDirection === WalkDirections.LEFT)
     this.sprite.setVelocity(
       this.currWalkDirection === WalkDirections.RIGHT
         ? Monster.WALK_SPEED
@@ -194,5 +262,6 @@ export class Monster {
     } else {
       this.game.player.incrementCombo()
     }
+    this.game.player.addExp(this.expReward)
   }
 }

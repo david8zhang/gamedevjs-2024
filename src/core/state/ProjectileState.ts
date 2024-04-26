@@ -1,11 +1,9 @@
 import Game from '../../scenes/Game'
-import { UI } from '../../scenes/UI'
 import { Player } from '../Player'
 import { Projectile } from '../Projectile'
 import StateMachine, { IState } from './StateMachine'
 
 export default class ProjectileState implements IState {
-  private static PROJECTILE_COOLDOWN_MS = 1000
   public name: string = 'ProjectileState'
 
   private player: Player
@@ -17,7 +15,10 @@ export default class ProjectileState implements IState {
   }
 
   onEnter(): void {
-    if (!this.player.projectileCooldown) {
+    if (this.player.projectileSkillCooldown.usesLeft > 0) {
+      if (!this.player.isTurboCharged) {
+        this.player.projectileSkillCooldown.usesLeft--
+      }
       Game.instance.sound.play('throw', { volume: 0.5 })
       new Projectile(Game.instance, {
         position: {
@@ -26,17 +27,6 @@ export default class ProjectileState implements IState {
         },
         flipX: this.player.sprite.flipX,
       })
-
-      if (!this.player.isTurboCharged) {
-        this.player.projectileCooldown = true
-        Player.startCooldownEvent(
-          ProjectileState.PROJECTILE_COOLDOWN_MS,
-          UI.instance.throwingStarIcon,
-          () => {
-            this.player.projectileCooldown = false
-          }
-        )
-      }
     }
 
     if (this.player.isGrounded()) {

@@ -1,11 +1,9 @@
 import Game from '../../scenes/Game'
-import { UI } from '../../scenes/UI'
 import { Constants } from '../../utils/Constants'
 import { Player } from '../Player'
 import StateMachine, { IState } from './StateMachine'
 
 export default class DashState implements IState {
-  private static DASH_COOLDOWN_MS = 4000
   private static DASH_DISTANCE = 150
 
   public name: string = 'DashState'
@@ -19,54 +17,43 @@ export default class DashState implements IState {
   }
 
   onEnter(): void {
-    if (!this.player.dashOnCooldown) {
-      this.player.animQueue = ['dash-strike']
-      this.player.playNextAnimation()
-      this.player.sprite.setStatic(true)
-      const sprite = this.player.sprite
-      const endX = this.getDashEndX()
-      const dashSpeed = 0.75
-      const duration = Math.abs(sprite.x - endX) / dashSpeed
-      sprite.play('dash')
-      Game.instance.tweens.add({
-        targets: [sprite],
-        onStart: () => {
-          sprite.setTint(0x0000ff)
-          this.player.isInvincible = true
-        },
-        onComplete: () => {
-          sprite.clearTint()
-          Game.instance.time.delayedCall(500, () => {
-            this.player.isInvincible = false
-          })
-          this.player.sprite.setStatic(false)
-          if (this.player.isGrounded()) {
-            this.stateMachine.setState('IdleState')
-          } else {
-            this.stateMachine.setState('JumpState')
-          }
-        },
-        x: {
-          from: sprite.x,
-          to: endX,
-        },
-        ease: Phaser.Math.Easing.Sine.InOut,
-        duration: duration,
-      })
+    this.player.animQueue = ['dash-strike']
+    this.player.playNextAnimation()
+    this.player.sprite.setStatic(true)
+    const sprite = this.player.sprite
+    const endX = this.getDashEndX()
+    const dashSpeed = 0.75
+    const duration = Math.abs(sprite.x - endX) / dashSpeed
+    sprite.play('dash')
 
-      if (!this.player.isTurboCharged) {
-        this.player.dashOnCooldown = true
-        Player.startCooldownEvent(
-          DashState.DASH_COOLDOWN_MS,
-          UI.instance.dashIcon,
-          () => {
-            this.player.dashOnCooldown = false
-          }
-        )
-      }
-    } else {
-      this.stateMachine.setState('IdleState')
+    if (!this.player.isTurboCharged) {
+      this.player.dashSkillCooldown.usesLeft -= 1
     }
+    Game.instance.tweens.add({
+      targets: [sprite],
+      onStart: () => {
+        sprite.setTint(0x0000ff)
+        this.player.isInvincible = true
+      },
+      onComplete: () => {
+        sprite.clearTint()
+        Game.instance.time.delayedCall(500, () => {
+          this.player.isInvincible = false
+        })
+        this.player.sprite.setStatic(false)
+        if (this.player.isGrounded()) {
+          this.stateMachine.setState('IdleState')
+        } else {
+          this.stateMachine.setState('JumpState')
+        }
+      },
+      x: {
+        from: sprite.x,
+        to: endX,
+      },
+      ease: Phaser.Math.Easing.Sine.InOut,
+      duration: duration,
+    })
   }
 
   onUpdate(_dt: number): void {}

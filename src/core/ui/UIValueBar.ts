@@ -147,13 +147,15 @@ export class UIValueBar {
       )
     } else {
       const length = Math.floor(percentage * this.width)
-      this.graphics.fillRoundedRect(
-        this.x,
-        this.y,
-        length,
-        this.height,
-        this.radius
-      )
+      if (length > 0) {
+        this.graphics.fillRoundedRect(
+          this.x,
+          this.y,
+          length,
+          this.height,
+          this.radius
+        )
+      }
     }
   }
 
