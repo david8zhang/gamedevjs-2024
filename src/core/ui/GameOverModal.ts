@@ -14,8 +14,8 @@ export class GameOverModal {
 
     this.bgGraphics = this.ui.add.graphics()
     this.bgGraphics.setVisible(false)
-    const bgRectWidth = 400
-    const bgRectHeight = 100
+    const bgRectWidth = 450
+    const bgRectHeight = 200
     this.bgGraphics.fillStyle(0x1ea8e3, 0.8)
     this.bgGraphics.fillRoundedRect(
       Constants.WINDOW_WIDTH / 2 - bgRectWidth / 2,
@@ -29,15 +29,16 @@ export class GameOverModal {
       .text(
         Constants.WINDOW_WIDTH / 2,
         Constants.WINDOW_HEIGHT / 2 - 20,
-        'You died! Press OK to respawn',
+        'you died! press ok to respawn',
         {
-          fontSize: '20px',
+          fontSize: '30px',
           color: 'white',
+          fontFamily: 'electric-boots',
         }
       )
-      // .setStroke('white', 4)
       .setVisible(false)
       .setOrigin(0.5, 0.5)
+      .setStroke('#000000', 5)
 
     this.okButton = this.ui.add
       .rectangle(
@@ -51,9 +52,10 @@ export class GameOverModal {
       .setVisible(false)
 
     this.okText = this.ui.add
-      .text(this.okButton.x, this.okButton.y, 'OK', {
+      .text(this.okButton.x, this.okButton.y - 3, 'ok', {
         fontSize: '18px',
         color: 'white',
+        fontFamily: 'electric-boots',
       })
       .setOrigin(0.5, 0.5)
       .setVisible(false)

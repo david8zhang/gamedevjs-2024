@@ -40,8 +40,9 @@ export class LevelUpMenu {
         Constants.WINDOW_HEIGHT / 2 - 164,
         'Level up!',
         {
-          fontSize: '20px',
+          fontSize: '40px',
           color: 'white',
+          fontFamily: 'electric-boots',
         }
       )
       .setVisible(false)

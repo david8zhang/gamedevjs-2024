@@ -415,7 +415,6 @@ export class Player {
     if (!this.isDead) {
       this.stateMachine.update(dt)
     }
-    this.stateMachine.update(dt)
     this.dashSkillCooldown.update(dt)
     this.doubleJumpSkillCooldown.update(dt)
     this.projectileSkillCooldown.update(dt)

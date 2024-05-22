@@ -99,10 +99,12 @@ export class AttackSprite {
                 .play(this.hitAnimKey)
                 .setFlipX(this.sprite.flipX)
 
-              enemyRef.takeDamage(
-                this.game.player.calculateDamage(),
-                this.game.player.isTurboCharged
-              )
+              let damage = this.game.player.calculateDamage()
+              if (this.attackAnimKey === 'dash-strike') {
+                damage *= 2
+              }
+
+              enemyRef.takeDamage(damage, this.game.player.isTurboCharged)
             }
           }
         }

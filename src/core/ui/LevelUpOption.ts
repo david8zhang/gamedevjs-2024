@@ -25,8 +25,9 @@ export class LevelUpOption {
 
     this.text = this.ui.add
       .text(this.button.x, this.button.y, 'test', {
-        fontSize: '14px',
+        fontSize: '25px',
         color: 'white',
+        fontFamily: 'electric-boots',
         wordWrap: { width: 176, useAdvancedWrap: true },
       })
       .setOrigin(0.5, 0.5)
@@ -38,6 +39,7 @@ export class LevelUpOption {
       this.ui.levelUpMenu.hide()
       this.ui.sound.play('powerup', { volume: 0.5 })
       this.powerUp.onPickUp()
+      this.ui.increasePlayerHealth(this.ui.healthbar.maxValue)
     })
   }
 
